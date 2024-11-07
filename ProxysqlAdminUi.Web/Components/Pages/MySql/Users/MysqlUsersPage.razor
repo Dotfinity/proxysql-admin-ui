@@ -1,0 +1,50 @@
+﻿@page "/mysql/users"
+
+@using ProxysqlAdminUi.Web.Models
+@using ProxysqlAdminUi.Web.Repositories
+
+@attribute [Authorize]
+
+@inject ProxySqlRepository ProxySqlRepository
+
+<h3>Users</h3>
+
+<RadzenDataGrid TItem="MysqlUser" Data="@MySqlUsersList" AllowPaging="true" PageSize="10">
+    <Columns>
+        <RadzenDataGridColumn Property="@nameof(MysqlUser.Username)" Title="Username" />
+        <RadzenDataGridColumn Property="@nameof(MysqlUser.DefaultHostgroup)" Title="Default Hostgroup" />
+        <RadzenDataGridColumn>
+            <Template>
+                <RadzenButton Click="@ShowEditModal" Text="Edit" Icon="Edit"></RadzenButton>
+                <RadzenButton Click="@ShowDeleteModal" Text="Delete" Icon="Delete"></RadzenButton>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+
+    private List<MysqlUser> MySqlUsersList { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        MySqlUsersList = (await GetMySqlUsersAsync()).ToList();
+        StateHasChanged();
+    }
+
+    private async Task<IEnumerable<MysqlUser>> GetMySqlUsersAsync()
+    {
+        return await ProxySqlRepository.GetMySqlUsers();
+    }
+
+    private void ShowEditModal()
+    {
+        // Implement edit functionality using the selected MySQL user.
+    }
+
+    private void ShowDeleteModal()
+    {
+        // Implement delete functionality using the selected MySQL user.
+    }
+}

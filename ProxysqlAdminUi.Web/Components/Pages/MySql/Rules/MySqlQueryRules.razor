@@ -1,0 +1,202 @@
+﻿@page "/mysql/rules"
+
+@using ProxysqlAdminUi.Web.Repositories
+@using ProxysqlAdminUi.Web.ViewModel
+
+@attribute [Authorize]
+
+@inject ProxySqlRepository ProxySqlRepository
+@inject DialogService DialogService
+
+<RadzenRow AlignItems="AlignItems.Normal" Gap="">
+    <RadzenColumn Order="1" Size="3">
+        <RadzenText Text="Query Rules" TextStyle="TextStyle.DisplayH3" TextAlign="TextAlign.Left" />
+    </RadzenColumn>
+    <RadzenColumn Order="10" Size="2" Offset="7">
+        <RadzenStack AlignItems="AlignItems.End">
+            <RadzenButton Icon="add" ButtonStyle="ButtonStyle.Primary" Text="Add Rule" Click="CreateNewQueryRule"></RadzenButton>
+        </RadzenStack>
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenStack AlignItems="AlignItems.Start" Orientation="Orientation.Vertical">
+
+    @foreach (var rule in MysqlQueryRulesList)
+    {
+        <RadzenCard class="rz-w-100">
+            <RadzenCardGroup Responsive="true">
+                <RadzenCard Variant="Variant.Text">
+                    <RadzenRow>
+                        <RadzenLabel>Rule Id:</RadzenLabel> <RadzenText>@rule.RuleId</RadzenText>
+                    </RadzenRow>
+                    @if (rule.Comment != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Comment:</RadzenLabel> <RadzenText>@rule.Comment</RadzenText>
+                        </RadzenRow>
+                    }
+                    <RadzenRow>
+                        <RadzenLabel>Apply:</RadzenLabel> <RadzenText>@rule.Apply</RadzenText>
+                    </RadzenRow>
+                    <RadzenRow>
+                        <RadzenLabel>Active:</RadzenLabel> <RadzenText>@rule.Active</RadzenText>
+                    </RadzenRow>
+                    @if (rule.CacheTtl != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Cache TTL (ms):</RadzenLabel> <RadzenText>@(rule.CacheTtl)</RadzenText>
+                        </RadzenRow>
+                    }
+
+                    @if (rule.CacheEmptyResult != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Cache Empty Results:</RadzenLabel> <RadzenText>@(rule.CacheEmptyResult)</RadzenText>
+                        </RadzenRow>
+                    }
+                    @if (rule.Timeout != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Timeout:</RadzenLabel> <RadzenText>@(rule.Timeout)</RadzenText>
+                        </RadzenRow>
+                    }
+                    @if (rule.Log != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Log:</RadzenLabel> <RadzenText>@(rule.Log)</RadzenText>
+                        </RadzenRow>
+                    }
+                </RadzenCard>
+                <RadzenCard Variant="Variant.Text">
+                    @if (rule.Username != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Username:</RadzenLabel> <RadzenText>@(rule.Username)</RadzenText>
+                        </RadzenRow>
+                    }
+                    @if (rule.Schemaname != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Schema Name:</RadzenLabel> <RadzenText>@(rule.Schemaname)</RadzenText>
+                        </RadzenRow>
+                    }
+
+                    @if (rule.DestinationHostgroup != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Destination host group:</RadzenLabel> <RadzenText>@(rule.DestinationHostgroup)</RadzenText>
+                        </RadzenRow>
+                    }
+                    @if (rule.Digest != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Digest:</RadzenLabel> <RadzenText>@(rule.Digest)</RadzenText>
+                        </RadzenRow>
+                        <RadzenRow>
+                            <RadzenLabel>Digest Text:</RadzenLabel> <RadzenText TextStyle="TextStyle.Subtitle1" Text="@(rule.DigestText)"></RadzenText>
+                        </RadzenRow>
+                    }
+                    @if (rule.MatchDigest != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Match Digest:</RadzenLabel> <RadzenText>@(rule.MatchDigest)</RadzenText>
+                        </RadzenRow>
+                    }
+
+                    @if (rule.MatchPattern != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Match Pattern:</RadzenLabel> <RadzenText>@(rule.MatchPattern)</RadzenText>
+                        </RadzenRow>
+                        <RadzenRow>
+                            <RadzenLabel>Negate Match Pattern:</RadzenLabel> <RadzenText>@(rule.NegateMatchPattern)</RadzenText>
+                        </RadzenRow>
+                    }
+                    @if (rule.ReplacePattern != null)
+                    {
+                        <RadzenRow>
+                            <RadzenLabel>Replace Pattern:</RadzenLabel> <RadzenText>@(rule.ReplacePattern)</RadzenText>
+                        </RadzenRow>
+                    }
+                </RadzenCard>
+                <RadzenCard Variant="Variant.Text">
+                    <RadzenRow>
+                        <RadzenLabel>Processed Queries:</RadzenLabel> <RadzenText>@(rule.CountStar)</RadzenText>
+                    </RadzenRow>
+                    <RadzenRow>
+                        <RadzenLabel>Cached Queries:</RadzenLabel> <RadzenText>@(rule.Hits)</RadzenText>
+                    </RadzenRow>
+                    <RadzenChart Style="width: 100%; max-width: 600px;">
+                        <RadzenPieSeries Data=@GetChartEntry(rule.RuleId) ValueProperty="Count" CategoryProperty="Type">
+                            <RadzenSeriesDataLabels Visible="true" />
+                        </RadzenPieSeries>
+                    </RadzenChart>
+                </RadzenCard>
+                <RadzenCard Variant="Variant.Text">
+                    <RadzenStack>
+                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Primary" Text="Edit" Click="async () => await ShowEditModal(rule.RuleId)"></RadzenButton>
+                        <RadzenButton Icon="Report" ButtonStyle="ButtonStyle.Danger" Text="Delete" Click="async () => await ShowDeleteModal(rule.RuleId)"></RadzenButton>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenCardGroup>
+        </RadzenCard>
+    }
+</RadzenStack>
+
+@code {
+    private List<QueryRuleViewModel> MysqlQueryRulesList { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        MysqlQueryRulesList.Clear();
+        MysqlQueryRulesList = (await GetMySqlRulesAsync()).ToList();
+    }
+
+    private IEnumerable<PieChartEntryViewModel> GetChartEntry(int ruleId)
+    {
+        var rule = MysqlQueryRulesList.Find(x => x.RuleId == ruleId);
+
+        return
+        [
+            new () { Type = "Processed", Count = rule.CountStar  },
+            new () { Type = "Cached", Count = rule.Hits  }
+        ];
+    }
+    private async Task<IEnumerable<QueryRuleViewModel>> GetMySqlRulesAsync()
+    {
+        return await ProxySqlRepository.GetQueryRulesWithStats();
+    }
+
+    private async Task ShowEditModal(int ruleId)
+    {
+        await DialogService.OpenAsync<EditQueryRuleDialog>("Edit Rule " + ruleId,
+            parameters: new Dictionary<string, object>() { { "RuleId", ruleId } },
+            options: new DialogOptions() { CloseDialogOnEsc = true });
+
+        // Refresh the rules list after edit
+        MysqlQueryRulesList = (await GetMySqlRulesAsync()).ToList();
+        StateHasChanged();
+    }
+
+    private async Task ShowDeleteModal(int ruleId)
+    {
+        await DialogService.OpenAsync<DeleteQueryRuleDialog>("Delete Rule " + ruleId,
+            parameters: new Dictionary<string, object>() { { "RuleId", ruleId } },
+            options: new DialogOptions()
+                {
+                    CloseDialogOnEsc = true
+                });
+        MysqlQueryRulesList = (await GetMySqlRulesAsync()).ToList();
+        StateHasChanged();
+    }
+
+    private async Task CreateNewQueryRule()
+    {
+        await DialogService.OpenAsync<AddQueryRuleDialog>("Add Query Rule", options: new DialogOptions()
+            {
+                CloseDialogOnEsc = true,
+            });
+        MysqlQueryRulesList = (await GetMySqlRulesAsync()).ToList();
+        StateHasChanged();
+    }
+}

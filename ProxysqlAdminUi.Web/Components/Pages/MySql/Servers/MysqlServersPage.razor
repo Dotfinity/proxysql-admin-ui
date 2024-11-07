@@ -1,0 +1,49 @@
+﻿@page "/mysql/servers"
+
+@attribute [Authorize]
+
+@using ProxysqlAdminUi.Web.Models
+@using ProxysqlAdminUi.Web.Repositories
+
+@inject ProxySqlRepository ProxySqlRepository
+
+<h3>MySQL Servers</h3>
+
+<RadzenDataGrid TItem="MysqlServer" Data="@MySqlServers" AllowPaging="true" PageSize="10">
+    <Columns>
+        <RadzenDataGridColumn Property="@nameof(MysqlServer.HostgroupId)" Title="Host Group ID" />
+        <RadzenDataGridColumn Property="@nameof(MysqlServer.Hostname)" Title="Hostname" />
+        <RadzenDataGridColumn Property="@nameof(MysqlServer.Port)" Title="Port" />
+        <RadzenDataGridColumn>
+            <Template>
+                <RadzenButton Text="Edit" Click="@ShowEditModal" Icon="Edit" />
+                <RadzenButton Text="Delete" Click="@ShowDeleteModal" Icon="Delete" />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    private List<MysqlServer> MySqlServers { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        MySqlServers = (await GetMySqlServersAsync()).ToList();
+    }
+
+    private async Task<IEnumerable<MysqlServer>> GetMySqlServersAsync()
+    {
+        return await ProxySqlRepository.GetMySqlServers();
+    }
+
+    private void ShowEditModal()
+    {
+        // Implement edit functionality using the selected MySQL server.
+    }
+
+    private void ShowDeleteModal()
+    {
+        // Implement delete functionality using the selected MySQL server.
+    }
+}
+

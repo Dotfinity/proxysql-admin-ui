@@ -1,7 +1,62 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+@using ProxysqlAdminUi.Web.Repositories
 
-<h1>Hello, world!</h1>
+@attribute [Authorize]
 
-Welcome to your new app.
+@inject ProxySqlRepository ProxySqlRepository
+
+<AuthorizeView>
+    <RadzenCard>
+        <RadzenText TextStyle="TextStyle.H5">Query Cache Utilization</RadzenText>
+        <RadzenRow>
+            <RadzenColumn Size="6">
+                <RadzenArcGauge class="w-100" Style="height:contain">
+                    <RadzenArcGaugeScale TickPosition="GaugeTickPosition.Outside" MinorStep="1" Step="10" Min="0" Max="100" Margin="10">
+                        <RadzenArcGaugeScaleValue Value="@_cacheHitRatio" ShowValue>
+                            <Template Context="arc_context">@($"{_cacheHitRatio:N1}% Cached")</Template>
+                        </RadzenArcGaugeScaleValue>
+                    </RadzenArcGaugeScale>
+                </RadzenArcGauge>
+            </RadzenColumn>
+            <RadzenColumn Size="6" class="d-flex align-items-center">
+                <RadzenStack Class="w-100" Orientation="Orientation.Vertical">
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Subtitle2">Total Queries</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6">@_totalQueries.ToString("N0")</RadzenText>
+                    </RadzenCard>
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                        <RadzenCard Class="w-100">
+                            <RadzenText TextStyle="TextStyle.Subtitle2">Cached</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H6" >@_cachedQueries.ToString("N0")</RadzenText>
+                        </RadzenCard>
+                        <RadzenCard Class="w-100">
+                            <RadzenText TextStyle="TextStyle.Subtitle2">Uncached</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H6" >@_uncachedQueries.ToString("N0")</RadzenText>
+                        </RadzenCard>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenCard>
+
+</AuthorizeView>
+@code {
+    private double _cacheHitRatio;
+    private long _totalQueries;
+    private long _cachedQueries;
+    private long _uncachedQueries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rules = await ProxySqlRepository.GetQueryRulesWithStats();
+
+        _cachedQueries = rules.Sum(r => r.Hits);
+        _uncachedQueries = rules.Sum(r => r.CountStar);
+        _totalQueries = _cachedQueries + _uncachedQueries;
+
+        _cacheHitRatio = _totalQueries > 0
+            ? Math.Round((double)_cachedQueries / _totalQueries * 100, 1)
+            : 0;
+    }
+}

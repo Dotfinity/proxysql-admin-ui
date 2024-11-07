@@ -1,0 +1,20 @@
+﻿@page "/mysql/queries/digest/text"
+
+@attribute [Authorize]
+ 
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+  <code>
+      @DigestText
+  </code>
+</RadzenStack>
+
+@code {
+    [Parameter] public string DigestText { get; set; }
+    [Parameter] public bool ShowClose { get; set; } = true;
+     
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+    }
+}

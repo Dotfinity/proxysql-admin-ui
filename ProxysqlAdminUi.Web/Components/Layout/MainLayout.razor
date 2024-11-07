@@ -1,23 +1,31 @@
-﻿@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase 
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@inject NavigationManager NavigationManager
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<RadzenComponents @rendermode="InteractiveServer" />
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<RadzenLayout>
+    <RadzenHeader>
+        <RadzenMenu>
+            <RadzenMenuItem Text="Home" Icon="home" Path="/" />
+            <RadzenMenuItem Text="Users" Icon="account_box" Path="/mysql/users" />
+            <RadzenMenuItem Text="Servers" Icon="dns" Path="/mysql/servers" />
+            <RadzenMenuItem Text="Rules" Icon="quiz" Path="/mysql/rules" />
+            <RadzenMenuItem Text="Query Digest" Icon="query_stats" Path="/mysql/queries/digest" />
+        </RadzenMenu>
+    </RadzenHeader>
+    <RadzenBody>
+        @Body
+    </RadzenBody>
+</RadzenLayout>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+
+@code {
+    bool sidebar1Expanded = true;
+}

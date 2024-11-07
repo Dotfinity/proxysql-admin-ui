@@ -1,0 +1,146 @@
+﻿@page "/mysql/rules/edit/{RuleId:int}"
+
+@using ProxysqlAdminUi.Web.Models
+@using ProxysqlAdminUi.Web.Repositories
+
+@attribute [Authorize]
+
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+@inject ProxySqlRepository ProxySqlRepository
+
+<RadzenContent Container="main">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            @if (_queryRule != null)
+            {
+                <RadzenTemplateForm TItem="MysqlQueryRule" Data=@_queryRule Submit=@OnSubmit>
+                    <RadzenCard>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <RadzenCheckBox @bind-Value=@_queryRule.Active Name="Active" />
+                                <RadzenLabel Text="Active" Component="Active" Style="margin-left: 8px;" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <RadzenCheckBox @bind-Value=@_queryRule.Apply Name="Apply" />
+                                <RadzenLabel Text="Apply" Component="Apply" Style="margin-left: 8px;" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <RadzenLabel Text="Username" />
+                                <RadzenTextBox @bind-Value=@_queryRule.Username Name="Username" Class="w-100" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <RadzenLabel Text="Schema Name" />
+                                <RadzenTextBox @bind-Value=@_queryRule.Schemaname Name="Schemaname" Class="w-100" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <RadzenLabel Text="Client Address" />
+                                <RadzenTextBox @bind-Value=@_queryRule.ClientAddr Name="ClientAddr" Class="w-100" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <RadzenLabel Text="Proxy Address" />
+                                <RadzenTextBox @bind-Value=@_queryRule.ProxyAddr Name="ProxyAddr" Class="w-100" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <RadzenLabel Text="Match Pattern" />
+                                <RadzenTextArea @bind-Value=@_queryRule.MatchPattern Name="MatchPattern" Class="w-100" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <RadzenLabel Text="Match Digest" />
+                                <RadzenTextBox @bind-Value=@_queryRule.MatchDigest Name="MatchDigest" Class="w-100" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <RadzenLabel Text="Digest" />
+                                <RadzenTextBox @bind-Value=@_queryRule.Digest Name="Digest" Class="w-100" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <RadzenLabel Text="Destination Hostgroup" />
+                                <RadzenNumeric @bind-Value=@_queryRule.DestinationHostgroup Name="DestinationHostgroup" Class="w-100" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <RadzenLabel Text="Cache TTL" />
+                                <RadzenNumeric @bind-Value=@_queryRule.CacheTtl Name="CacheTtl" Class="w-100" Min="1" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <RadzenCheckBox @bind-Value=@_queryRule.CacheEmptyResult Name="CacheEmptyResult" />
+                                <RadzenLabel Text="Cache Empty Result" Component="CacheEmptyResult" Style="margin-left: 8px;" />
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <RadzenLabel Text="Comment"/>
+                                <RadzenTextArea @bind-Value=@_queryRule.Comment Name="Comment" Class="w-100"/>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-end">
+                                <RadzenButton ButtonType="ButtonType.Submit" Text="Save" ButtonStyle="ButtonStyle.Primary" Class="mr-2" />
+                                <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click=@OnCancel />
+                            </div>
+                        </div>
+                    </RadzenCard>
+                </RadzenTemplateForm>
+            }
+            else
+            {
+                <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+            }
+        </div>
+    </div>
+</RadzenContent>
+
+@code {
+    [Parameter]
+    public int RuleId { get; set; }
+
+    private MysqlQueryRule _queryRule;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _queryRule = await ProxySqlRepository.GetMySqlQueryRule(RuleId);
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Failed to load query rule: " + ex.Message);
+            DialogService.Close();
+        }
+    }
+
+    private async Task OnSubmit()
+    {
+        try
+        {
+            await ProxySqlRepository.UpdateMySqlQueryRule(_queryRule);
+            NotificationService.Notify(NotificationSeverity.Success, "Success", "Query rule updated successfully");
+            DialogService.Close(true);
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Failed to update query rule: " + ex.Message);
+        }
+    }
+
+    private void OnCancel()
+    {
+        DialogService.Close(false);
+    }
+}
