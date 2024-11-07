@@ -4,13 +4,10 @@ VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProxysqlAdminUi.Web", "ProxysqlAdminUi.Web\ProxysqlAdminUi.Web.csproj", "{08A62FBD-9370-4CCB-AF76-6DFD06471E8F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProxysqlAdminUi.Tests", "ProxysqlAdminUi.Tests\ProxysqlAdminUi.Tests.csproj", "{A3E5D06B-B3C3-49BC-BD83-2B2457D3410C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProxysqlAdminUi.ServiceDefaults", "ProxysqlAdminUi.ServiceDefaults\ProxysqlAdminUi.ServiceDefaults.csproj", "{461308A7-19D1-48BD-B23E-ECD1775C4D5A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProxysqlAdminUi.AppHost", "ProxysqlAdminUi.AppHost\ProxysqlAdminUi.AppHost.csproj", "{71048295-DE16-4271-B617-CAAB65ADD5FB}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProxysqlAdminUi.ApiService", "ProxysqlAdminUi.ApiService\ProxysqlAdminUi.ApiService.csproj", "{0A75D7CA-D15A-4710-9C06-B2AC3E5CB0DB}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{63D07254-797B-4DD8-B92E-195EE3CB1D56}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,22 +19,6 @@ Global
 		{08A62FBD-9370-4CCB-AF76-6DFD06471E8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08A62FBD-9370-4CCB-AF76-6DFD06471E8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08A62FBD-9370-4CCB-AF76-6DFD06471E8F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A3E5D06B-B3C3-49BC-BD83-2B2457D3410C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A3E5D06B-B3C3-49BC-BD83-2B2457D3410C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A3E5D06B-B3C3-49BC-BD83-2B2457D3410C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A3E5D06B-B3C3-49BC-BD83-2B2457D3410C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{461308A7-19D1-48BD-B23E-ECD1775C4D5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{461308A7-19D1-48BD-B23E-ECD1775C4D5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{461308A7-19D1-48BD-B23E-ECD1775C4D5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{461308A7-19D1-48BD-B23E-ECD1775C4D5A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{71048295-DE16-4271-B617-CAAB65ADD5FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{71048295-DE16-4271-B617-CAAB65ADD5FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{71048295-DE16-4271-B617-CAAB65ADD5FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{71048295-DE16-4271-B617-CAAB65ADD5FB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0A75D7CA-D15A-4710-9C06-B2AC3E5CB0DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A75D7CA-D15A-4710-9C06-B2AC3E5CB0DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A75D7CA-D15A-4710-9C06-B2AC3E5CB0DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A75D7CA-D15A-4710-9C06-B2AC3E5CB0DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
