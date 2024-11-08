@@ -15,7 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.json", false)
     .AddJsonFile($"appsettings.{Environments.Development}.json", true)
-    .AddEnvironmentVariables("PAI");
+    .AddEnvironmentVariables("PAI_")
+    .AddEnvironmentVariables();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
