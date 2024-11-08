@@ -3,11 +3,14 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 ARG BUILD_CONFIGURATION=Release
 ARG TARGETARCH=amd64
 ARG RUNTIME=linux-musl-x64
+RUN tree -d ./
 WORKDIR /src
+RUN tree -d ./
 COPY ["ProxysqlAdminUi.Web/ProxysqlAdminUi.Web.csproj", "ProxysqlAdminUi.Web/"]
 RUN dotnet restore --runtime $RUNTIME "./ProxysqlAdminUi.Web/ProxysqlAdminUi.Web.csproj"
 COPY . .
 WORKDIR "/src/ProxysqlAdminUi.Web"
+RUN tree -d ./
 RUN dotnet build "./ProxysqlAdminUi.Web.csproj" -c $BUILD_CONFIGURATION --runtime $RUNTIME -o /app/build
 
 RUN dotnet publish "./ProxysqlAdminUi.Web.csproj" --runtime $RUNTIME --no-restore -c $BUILD_CONFIGURATION --self-contained -o /app/publish /p:UseAppHost=true
@@ -29,5 +32,6 @@ RUN apk add --no-cache \
 
 
 WORKDIR /app
+RUN tree -d ./
 COPY --from=build /app/publish .
 ENTRYPOINT ["./ProxysqlAdminUi.Web"]
