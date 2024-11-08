@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Runtime.InteropServices;
+using Microsoft.EntityFrameworkCore;
+using ProxysqlAdminUi.Web.Contexts;
 
 namespace ProxysqlAdminUi.Web.Data;
 
@@ -6,19 +8,7 @@ public static class SqliteDbExtensions
 {
     public static void SetupIdentityDbContext(this WebApplicationBuilder builder)
     {
-        // TODO: set the directory from the configuration and/or environment variables
-        // for docker, it would be /app/db and/or outside of the app directory, so it's not lost when the container is removed
-
-        var currentDirectory = Directory.GetCurrentDirectory();
-
-        var dbFolder = Path.Combine(currentDirectory, "db");
-
-        if (!Directory.Exists(dbFolder))
-        {
-            Directory.CreateDirectory(dbFolder);
-        }
-
-        var dbPath = Path.Combine(dbFolder, "app.db");
+        var dbPath = GetAppDbPath();
 
         var connectionString = $"Data Source={dbPath}";
 
@@ -28,5 +18,40 @@ public static class SqliteDbExtensions
             {
                 b.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
             }));
+    }
+
+    public static string GetAppDbPath()
+    {
+        var currentDirectory = "/app/";
+
+        var envVarPath = Environment.GetEnvironmentVariable("APP_DB_PATH");
+        
+        if (!string.IsNullOrEmpty(envVarPath))
+        {
+            currentDirectory = envVarPath;
+        }
+        else
+        { 
+            currentDirectory = Directory.GetCurrentDirectory();
+        }
+
+
+        var dbFolder = Path.Combine(currentDirectory, "db");
+
+        if (!Directory.Exists(dbFolder))
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Directory.CreateDirectory(dbFolder);
+            }
+            else
+            {
+                Directory.CreateDirectory(dbFolder,
+                    UnixFileMode.UserRead | UnixFileMode.GroupRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            }
+        }
+
+        var dbPath = Path.Combine(dbFolder, "app.db");
+        return dbPath;
     }
 }

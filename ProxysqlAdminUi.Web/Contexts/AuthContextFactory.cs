@@ -1,15 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore;
+using ProxysqlAdminUi.Web.Data;
 
-namespace ProxysqlAdminUi.Web.Data;
+namespace ProxysqlAdminUi.Web.Contexts;
 
+/// <summary>
+/// This is used primarily for migrations via the CLI
+/// </summary>
 public class AuthContextFactory : IDesignTimeDbContextFactory<ProxysqlAdminUiWebAuthContext>
 {
     public ProxysqlAdminUiWebAuthContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<ProxysqlAdminUiWebAuthContext>();
-        //TODO: this also needs to be set from the configuration and/or environment variables
-        optionsBuilder.UseSqlite("Data Source=/db/app.db;");
+        optionsBuilder.UseSqlite($"Data Source={SqliteDbExtensions.GetAppDbPath()};");
 
         return new ProxysqlAdminUiWebAuthContext(optionsBuilder.Options);
     }
