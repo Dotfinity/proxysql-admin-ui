@@ -3,7 +3,8 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using ProxysqlAdminUi.Web.Data;
+using ProxysqlAdminUi.Web.Contexts;
+
 
 #nullable disable
 

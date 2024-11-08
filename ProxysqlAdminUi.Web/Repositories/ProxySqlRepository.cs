@@ -5,26 +5,19 @@ using ProxysqlAdminUi.Web.ViewModel;
 
 namespace ProxysqlAdminUi.Web.Repositories;
 
-public class ProxySqlRepository
+public class ProxySqlRepository(ProxySqlContext dbContext)
 {
-    private readonly ProxySqlContext _dbContext;
-
-    public ProxySqlRepository(ProxySqlContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     // MySQL Servers
     public async Task<IEnumerable<MysqlServer>> GetMySqlServers()
     {
-        return await _dbContext.MySqlServers
+        return await dbContext.MySqlServers
             .FromSqlRaw("SELECT * FROM mysql_servers")
             .ToListAsync();
     }
 
     public async Task<MysqlServer> GetMySqlServer(string hostname)
     {
-        return await _dbContext.MySqlServers
+        return await dbContext.MySqlServers
             .FromSqlRaw("SELECT * FROM mysql_servers WHERE hostname = {0}", hostname)
             .FirstOrDefaultAsync();
     }
@@ -37,7 +30,7 @@ public class ProxySqlRepository
             VALUES 
             ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11})";
 
-        var result = await _dbContext.Database.ExecuteSqlRawAsync(sql,
+        var result = await dbContext.Database.ExecuteSqlRawAsync(sql,
              server.HostgroupId, server.Hostname, server.Port, server.GtidPort,
              server.Status, server.Weight, server.Compression, server.MaxConnections,
              server.MaxReplicationLag, server.UseSsl, server.MaxLatencyMs, server.Comment);
@@ -53,7 +46,7 @@ public class ProxySqlRepository
                 use_ssl = {7}, max_latency_ms = {8}, comment = {9}
             WHERE hostgroup_id = {0} AND hostname = {1}";
 
-        return await _dbContext.Database.ExecuteSqlRawAsync(sql,
+        return await dbContext.Database.ExecuteSqlRawAsync(sql,
             server.HostgroupId, server.Hostname, server.Status, server.Weight,
             server.Compression, server.MaxConnections, server.MaxReplicationLag,
             server.UseSsl, server.MaxLatencyMs, server.Comment);
@@ -61,7 +54,7 @@ public class ProxySqlRepository
 
     public async Task<int> DeleteMySqlServer(int hostgroupId, string hostname)
     {
-        return await _dbContext.Database.ExecuteSqlRawAsync(
+        return await dbContext.Database.ExecuteSqlRawAsync(
             "DELETE FROM mysql_servers WHERE hostgroup_id = {0} AND hostname = {1}",
             hostgroupId, hostname);
     }
@@ -69,14 +62,14 @@ public class ProxySqlRepository
     // MySQL Users
     public async Task<IEnumerable<MysqlUser>> GetMySqlUsers()
     {
-        return await _dbContext.MySqlUsers
+        return await dbContext.MySqlUsers
             .FromSqlRaw("SELECT * FROM mysql_users")
             .ToListAsync();
     }
 
     public async Task<MysqlUser> GetMySqlUser(string username)
     {
-        return await _dbContext.MySqlUsers
+        return await dbContext.MySqlUsers
             .FromSqlRaw("SELECT * FROM mysql_users WHERE username = {0}", username)
             .FirstOrDefaultAsync();
     }
@@ -90,7 +83,7 @@ public class ProxySqlRepository
             VALUES 
             ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13})";
 
-        await _dbContext.Database.ExecuteSqlRawAsync(sql,
+        await dbContext.Database.ExecuteSqlRawAsync(sql,
             user.Username, user.Password, user.Active, user.UseSsl,
             user.DefaultHostgroup, user.DefaultSchema, user.SchemaLocked,
             user.TransactionPersistent, user.FastForward, user.Backend,
@@ -109,7 +102,7 @@ public class ProxySqlRepository
                 max_connections = {10}, attributes = {11}, comment = {12}
             WHERE username = {0} AND backend = {13}";
 
-        return await _dbContext.Database.ExecuteSqlRawAsync(sql,
+        return await dbContext.Database.ExecuteSqlRawAsync(sql,
             user.Username, user.Password, user.Active, user.UseSsl,
             user.DefaultHostgroup, user.DefaultSchema, user.SchemaLocked,
             user.TransactionPersistent, user.FastForward, user.Frontend,
@@ -118,14 +111,14 @@ public class ProxySqlRepository
 
     public async Task<int> DeleteMySqlUser(string username)
     {
-        return await _dbContext.Database.ExecuteSqlRawAsync(
+        return await dbContext.Database.ExecuteSqlRawAsync(
             "DELETE FROM mysql_users WHERE username = {0}", username);
     }
 
     // MySQL Query Rules
     public async Task<IEnumerable<MysqlQueryRule>> GetMySqlQueryRules()
     {
-        return await _dbContext.MySqlQueryRules
+        return await dbContext.MySqlQueryRules
             .FromSqlRaw("SELECT * FROM mysql_query_rules")
             .ToListAsync();
     }
@@ -142,12 +135,12 @@ public class ProxySqlRepository
         LEFT JOIN stats_mysql_query_digest d ON r.digest = d.digest
         where d.hostgroup >=0";
 
-        return _dbContext.Database.SqlQueryRaw<QueryRuleViewModel>(sql);
+        return dbContext.Database.SqlQueryRaw<QueryRuleViewModel>(sql);
     }
 
     public async Task<MysqlQueryRule> GetMySqlQueryRule(int ruleId)
     {
-        return await _dbContext.MySqlQueryRules
+        return await dbContext.MySqlQueryRules
             .FromSqlRaw("SELECT * FROM mysql_query_rules WHERE rule_id = {0}", ruleId)
             .FirstOrDefaultAsync();
     }
@@ -168,7 +161,7 @@ public class ProxySqlRepository
              {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29}, {30}, {31},
              {32}, {33})";
 
-        var result = await _dbContext.Database.ExecuteSqlRawAsync(sql,
+        var result = await dbContext.Database.ExecuteSqlRawAsync(sql,
             rule.Active, rule.Username, rule.Schemaname, rule.FlagIn,
             rule.ClientAddr, rule.ProxyAddr, rule.ProxyPort, rule.Digest,
             rule.MatchDigest, rule.MatchPattern, rule.NegateMatchPattern,
@@ -202,7 +195,7 @@ public class ProxySqlRepository
                 log = {31}, apply = {32}, attributes = {33}, comment = {34}
             WHERE rule_id = {0}";
 
-        var result = await _dbContext.Database.ExecuteSqlRawAsync(sql,
+        var result = await dbContext.Database.ExecuteSqlRawAsync(sql,
             rule.RuleId, rule.Active, rule.Username, rule.Schemaname,
             rule.FlagIn, rule.ClientAddr, rule.ProxyAddr, rule.ProxyPort,
             rule.Digest, rule.MatchDigest, rule.MatchPattern,
@@ -222,7 +215,7 @@ public class ProxySqlRepository
 
     public async Task<int> DeleteMySqlQueryRule(int ruleId)
     {
-        var result = await _dbContext.Database.ExecuteSqlRawAsync(
+        var result = await dbContext.Database.ExecuteSqlRawAsync(
             "DELETE FROM mysql_query_rules WHERE rule_id = {0}", ruleId);
         await LoadRulesToRuntime();
         await SaveRulesToDisk();
@@ -240,25 +233,25 @@ public class ProxySqlRepository
         LEFT JOIN mysql_query_rules r ON d.digest = r.digest
         where d.hostgroup >=0";
 
-        return await _dbContext.Database.SqlQueryRaw<QueryDigestViewModel>(sql)
+        return await dbContext.Database.SqlQueryRaw<QueryDigestViewModel>(sql)
             .ToListAsync();
     }
 
     public async Task<IEnumerable<StatsMySqlQueryRule>> GetStatsMySqlQueryRules()
     {
-        return await _dbContext.StatsMySqlQueryRules
+        return await dbContext.StatsMySqlQueryRules
             .FromSqlRaw("SELECT * FROM stats_mysql_query_rules")
             .ToListAsync();
     }
 
     public async Task LoadRulesToRuntime()
     {
-        await _dbContext.Database.ExecuteSqlRawAsync("LOAD MYSQL QUERY RULES TO RUNTIME;");
+        await dbContext.Database.ExecuteSqlRawAsync("LOAD MYSQL QUERY RULES TO RUNTIME;");
     }
 
     public async Task SaveRulesToDisk()
     {
-        await _dbContext.Database.ExecuteSqlRawAsync("SAVE MYSQL QUERY RULES TO DISK;");
+        await dbContext.Database.ExecuteSqlRawAsync("SAVE MYSQL QUERY RULES TO DISK;");
 
     }
 

@@ -3,21 +3,20 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace ProxysqlAdminUi.Web.Migrations.AuthMigrations
+namespace ProxysqlAdminUi.Web.Migrations.AuthMigrations;
+
+/// <inheritdoc />
+public partial class InitialCreate : Migration
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
           
-        }
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
           
-        }
     }
 }
