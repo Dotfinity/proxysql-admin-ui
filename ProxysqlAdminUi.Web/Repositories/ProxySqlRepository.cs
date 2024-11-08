@@ -126,14 +126,21 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
     public async Task<IEnumerable<QueryRuleViewModel>> GetQueryRulesWithStats()
     {
         const string sql = @"
-        SELECT r.*, 
-               COALESCE(s.hits, 0) as Hits, 
-               d.digest_text as DigestText,
-               d.count_star as CountStar
-        FROM mysql_query_rules r 
-        LEFT JOIN stats_mysql_query_rules s ON r.rule_id = s.rule_id
-        LEFT JOIN stats_mysql_query_digest d ON r.digest = d.digest
-        where d.hostgroup >=0";
+SELECT r.*, 
+    COALESCE(s.hits, 0) as Hits, 
+    MAX(d.digest_text) as DigestText,
+    COALESCE(SUM(CASE WHEN d.hostgroup >= 0 THEN d.count_star ELSE 0 END), 0) as CountStar
+FROM mysql_query_rules r 
+LEFT JOIN stats_mysql_query_rules s ON r.rule_id = s.rule_id
+LEFT JOIN stats_mysql_query_digest d ON r.digest = d.digest
+GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr, 
+         r.proxy_addr, r.proxy_port, r.digest, r.match_digest, r.match_pattern, 
+         r.negate_match_pattern, r.re_modifiers, r.flagOUT, r.replace_pattern,
+         r.destination_hostgroup, r.cache_ttl, r.cache_empty_result, r.cache_timeout,
+         r.reconnect, r.timeout, r.retries, r.delay, r.next_query_flagIN, 
+         r.mirror_flagOUT, r.mirror_hostgroup, r.error_msg, r.OK_msg, r.sticky_conn,
+         r.multiplex, r.gtid_from_hostgroup, r.log, r.apply, r.attributes, r.comment,
+         s.hits";
 
         return dbContext.Database.SqlQueryRaw<QueryRuleViewModel>(sql);
     }
