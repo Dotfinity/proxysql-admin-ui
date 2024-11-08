@@ -1,0 +1,43 @@
+name: Docker Image CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y.%m.%d')"
+      - uses: actions/checkout@v3
+      - name: Docker Login
+        # You may pin to the exact commit or the version.
+        # uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        uses: docker/login-action@v2.1.0
+        with:
+          # Server address of Docker registry. If not set then will default to Docker Hub
+          registry: proget.dotfinity.eu/dotfinity-custom/ # optional
+          # Username used to log against the Docker registry
+          username: ${{ secrets.registry_username }} # optional
+          # Password or personal access token used to log against the Docker registry
+          password: ${{ secrets.registry_password }} # optional
+          # Log out from the Docker registry at the end of a job
+          logout: true # optional, default is true
+      - name: Build and push Docker images
+        # You may pin to the exact commit or the version.
+        # uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        uses: docker/build-push-action@v4.0.0
+        with:
+          # List of additional build contexts (e.g., name=path)
+          context: ../
+          # Path to the Dockerfile
+          file: ./docker/Dockerfile # optional
+          # Push is a shorthand for --output=type=registry
+          push: true # optional, default is false
+          # Generate SBOM attestation for the build (shorthand for --attest=type=sbom)
+          tags: |
+            "proget.dotfinity.eu/dotfinity-custom/proxysql-admin-ui:${{ steps.date.outputs.date }}"
+            "proget.dotfinity.eu/dotfinity-custom/proxysql-admin-ui:latest"

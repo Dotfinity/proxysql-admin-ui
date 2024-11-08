@@ -1,0 +1,17 @@
+
+services:
+    app:
+      container_name: proxysql-admin-ui
+      build:
+        context: ../
+        dockerfile: ./docker/Dockerfile
+        args:
+          TARGETARCH: amd64
+          BUILDPLATFORM: linux/amd64
+          TARGETOS: linux
+          BUILD_CONFIGURATION: Release
+      environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+        - ASPNETCORE_URLS=http://+:8000
+      ports:
+        - "17020:8000"

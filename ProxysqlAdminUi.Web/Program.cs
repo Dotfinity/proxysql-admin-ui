@@ -13,6 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 #region Services
 
+builder.Configuration.AddJsonFile("appsettings.json", false)
+    .AddJsonFile($"appsettings.{Environments.Development}.json", true)
+    .AddEnvironmentVariables("PAI");
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -31,18 +35,18 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 
 builder.Services.AddAuthentication(options =>
     {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
+      options.DefaultScheme = IdentityConstants.ApplicationScheme;
+      options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
     })
     .AddIdentityCookies();
 
 
 builder.Services.AddIdentityCore<ProxysqlAdminUiWebUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = false;
-        options.Password.RequiredLength = 12;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequiredUniqueChars = 4;
+      options.SignIn.RequireConfirmedAccount = false;
+      options.Password.RequiredLength = 12;
+      options.Password.RequireNonAlphanumeric = false;
+      options.Password.RequiredUniqueChars = 4;
     })
     .AddEntityFrameworkStores<ProxysqlAdminUiWebAuthContext>()
     .AddSignInManager()
@@ -77,12 +81,10 @@ await scope.ServiceProvider.GetService<DefaultUserSeedService>().SeedDefaultUser
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+  app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
-app.UseHttpsRedirection();
+
 
 app.UseStaticFiles();
 app.UseAntiforgery();
