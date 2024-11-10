@@ -278,4 +278,32 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
 
       return result;
   }
+
+
+  public async Task<Dictionary<string, string>> GetMySqlGlobalStats()
+  {
+      var stats = await dbContext.StatsMySqlGlobals.ToListAsync();
+
+      return stats.ToDictionary(x => x.VariableName, x => x.VariableValue);
+  }
+
+  public async Task<Dictionary<string, long>> GetMemoryMetrics()
+  {
+      var metrics = await dbContext.StatsMemoryMetrics.FromSqlRaw("SELECT * FROM stats_memory_metrics")
+          .ToListAsync();
+
+      return metrics.ToDictionary(x => x.VariableName, x => x.VariableValue);
+  }
+
+  public async Task<ServerStatusSummary> GetServerStatusSummary()
+  {
+      var servers = await GetMySqlServers();
+
+      return new ServerStatusSummary
+      {
+          Online = servers.Count(s => s.Status == "ONLINE"),
+          Offline = servers.Count(s => s.Status.StartsWith("OFFLINE")),
+          Shunned = servers.Count(s => s.Status == "SHUNNED")
+      };
+  }
 }

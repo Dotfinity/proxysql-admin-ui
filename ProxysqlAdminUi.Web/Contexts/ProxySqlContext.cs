@@ -13,4 +13,7 @@ public class ProxySqlContext(DbContextOptions<ProxySqlContext> options) : DbCont
     public DbSet<MysqlUser> MySqlUsers { get; set; }
 
     public DbSet<GlobalVariableModel> GlobalVariables { get; set; }
+
+    public DbSet<StatsMySqlGlobal> StatsMySqlGlobals { get; set; }
+    public DbSet<StatsMemoryMetrics> StatsMemoryMetrics { get; set; }
 }
