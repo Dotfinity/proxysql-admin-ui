@@ -1,0 +1,104 @@
+﻿@page "/proxysql/global-variables"
+
+@using ProxysqlAdminUi.Web.Models
+@using ProxysqlAdminUi.Web.Repositories
+
+@inject ProxySqlRepository ProxySqlRepository
+@inject NotificationService NotificationService
+
+<RadzenStack Gap="1rem">
+    <RadzenText TextStyle="TextStyle.H3">Global Variables</RadzenText>
+
+    <RadzenDataGrid @ref="variablesGrid" Data="@_variables" TItem="GlobalVariableModel"
+                    AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="20"
+                    EditMode="DataGridEditMode.Single" RowUpdate="@OnUpdateRow">
+        <Columns>
+            <RadzenDataGridColumn TItem="GlobalVariableModel" Property="@nameof(GlobalVariableModel.VariableName)"
+                                  Title="Variable Name" Width="300px">
+                <FooterTemplate>
+                    Total Variables: @(_variables?.Count() ?? 0)
+                </FooterTemplate>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="GlobalVariableModel" Property="@nameof(GlobalVariableModel.VariableValue)"
+                                  Title="Value" Width="300px">
+                <EditTemplate Context="variable">
+                    <RadzenTextBox @bind-Value="variable.VariableValue" Style="width:100%" Name="Value" />
+                    <RadzenRequiredValidator Text="Value is required" Component="Value" Popup="true" />
+                </EditTemplate>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="GlobalVariableModel" Context="variable"
+                                  Width="70px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+                <Template Context="variable">
+                    <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
+                                  Size="ButtonSize.Medium" Click="@(args => EditRow(variable))" />
+                </Template>
+                <EditTemplate Context="variable">
+                    <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat"
+                                  Size="ButtonSize.Medium" Click="@((args) => SaveRow(variable))">
+                    </RadzenButton>
+                    <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
+                                  Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@((args) => CancelEdit(variable))">
+                    </RadzenButton>
+                </EditTemplate>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenStack>
+
+@code {
+    private IEnumerable<GlobalVariableModel> _variables;
+    private RadzenDataGrid<GlobalVariableModel> variablesGrid;
+    private Dictionary<string, string> _originalValues = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _variables = await ProxySqlRepository.GetGlobalVariables();
+    }
+
+    async Task EditRow(GlobalVariableModel variable)
+    {
+        _originalValues[variable.VariableName] = variable.VariableValue;
+        await variablesGrid.EditRow(variable);
+    }
+
+    void OnUpdateRow(GlobalVariableModel variable)
+    {
+        try
+        {
+            ProxySqlRepository.UpdateGlobalVariable(variable);
+            NotificationService.Notify(NotificationSeverity.Success, "Success", "Variable updated");
+            _originalValues.Remove(variable.VariableName);
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+            if (_originalValues.ContainsKey(variable.VariableName))
+            {
+                variable.VariableValue = _originalValues[variable.VariableName];
+                _originalValues.Remove(variable.VariableName);
+            }
+        }
+    }
+
+    async Task SaveRow(GlobalVariableModel variable)
+    {
+        await variablesGrid.UpdateRow(variable);
+    }
+
+    void CancelEdit(GlobalVariableModel variable)
+    {
+        if (_originalValues.ContainsKey(variable.VariableName))
+        {
+            variable.VariableValue = _originalValues[variable.VariableName];
+            _originalValues.Remove(variable.VariableName);
+        }
+        variablesGrid.CancelEditRow(variable);
+    }
+}

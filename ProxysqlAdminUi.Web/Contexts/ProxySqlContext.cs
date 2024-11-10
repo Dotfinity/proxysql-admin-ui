@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Reflection.Metadata;
+using Microsoft.EntityFrameworkCore;
 using ProxysqlAdminUi.Web.Models;
 
 namespace ProxysqlAdminUi.Web.Contexts;
@@ -10,4 +11,6 @@ public class ProxySqlContext(DbContextOptions<ProxySqlContext> options) : DbCont
     public DbSet<StatsMysqlQueryDigest> StatsMySqlQueryDigests { get; set; }
     public DbSet<MysqlServer> MySqlServers { get; set; }
     public DbSet<MysqlUser> MySqlUsers { get; set; }
+
+    public DbSet<GlobalVariableModel> GlobalVariables { get; set; }
 }
