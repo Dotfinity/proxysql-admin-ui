@@ -3,6 +3,8 @@
 @using ProxysqlAdminUi.Web.Models
 @using ProxysqlAdminUi.Web.Repositories
 
+@attribute [Authorize]
+
 @inject ProxySqlRepository ProxySqlRepository
 @inject DialogService DialogService
 @inject NotificationService NotificationService

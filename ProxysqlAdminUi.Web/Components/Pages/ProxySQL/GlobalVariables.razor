@@ -1,7 +1,9 @@
-﻿@page "/proxysql/global-variables"
+@page "/proxysql/global-variables"
 
 @using ProxysqlAdminUi.Web.Models
 @using ProxysqlAdminUi.Web.Repositories
+
+@attribute [Authorize]
 
 @inject ProxySqlRepository ProxySqlRepository
 @inject NotificationService NotificationService
