@@ -1,0 +1,28 @@
+﻿@page "/proxysql/actions"
+
+@using ProxysqlAdminUi.Web.Repositories
+
+@attribute [Authorize]
+
+@inject ProxySqlRepository ProxySqlRepository
+@inject NotificationService NotificationService
+
+
+<RadzenText Text="Actions" TextStyle="TextStyle.H3" />
+
+<RadzenRow>
+    <RadzenColumn Size="2">
+        <RadzenButton Text="Reset Statistics" Click="@Reload" Icon="refresh" ButtonStyle="ButtonStyle.Light" />
+    </RadzenColumn>
+</RadzenRow>
+
+
+
+@code {
+
+    private async Task Reload()
+    {
+        await ProxySqlRepository.ResetStats();
+        NotificationService.Notify(NotificationSeverity.Success, "Statistics reset", "ProxySQL statistics have been reset");
+    }
+}

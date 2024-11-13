@@ -7,94 +7,94 @@ namespace ProxysqlAdminUi.Web.Repositories;
 
 public class ProxySqlRepository(ProxySqlContext dbContext)
 {
-  // MySQL Servers
-  public async Task<IEnumerable<MysqlServer>> GetMySqlServers()
-  {
-    return await dbContext.MySqlServers
-        .FromSqlRaw("SELECT * FROM mysql_servers")
-        .ToListAsync();
-  }
+    // MySQL Servers
+    public async Task<IEnumerable<MysqlServer>> GetMySqlServers()
+    {
+        return await dbContext.MySqlServers
+            .FromSqlRaw("SELECT * FROM mysql_servers")
+            .ToListAsync();
+    }
 
-  public async Task<MysqlServer> GetMySqlServer(string hostname)
-  {
-    return await dbContext.MySqlServers
-        .FromSqlRaw("SELECT * FROM mysql_servers WHERE hostname = {0}", hostname)
-        .FirstOrDefaultAsync();
-  }
+    public async Task<MysqlServer> GetMySqlServer(string hostname)
+    {
+        return await dbContext.MySqlServers
+            .FromSqlRaw("SELECT * FROM mysql_servers WHERE hostname = {0}", hostname)
+            .FirstOrDefaultAsync();
+    }
 
-  public async Task<int> AddMySqlServer(MysqlServer server)
-  {
-    var sql = @"INSERT INTO mysql_servers 
+    public async Task<int> AddMySqlServer(MysqlServer server)
+    {
+        var sql = @"INSERT INTO mysql_servers 
             (hostgroup_id, hostname, port, gtid_port, status, weight, compression, 
              max_connections, max_replication_lag, use_ssl, max_latency_ms, comment)
             VALUES 
             ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11})";
 
-    var result = await dbContext.Database.ExecuteSqlRawAsync(sql,
-         server.HostgroupId, server.Hostname, server.Port, server.GtidPort,
-         server.Status, server.Weight, server.Compression, server.MaxConnections,
-         server.MaxReplicationLag, server.UseSsl, server.MaxLatencyMs, server.Comment);
+        var result = await dbContext.Database.ExecuteSqlRawAsync(sql,
+             server.HostgroupId, server.Hostname, server.Port, server.GtidPort,
+             server.Status, server.Weight, server.Compression, server.MaxConnections,
+             server.MaxReplicationLag, server.UseSsl, server.MaxLatencyMs, server.Comment);
 
-    return result;
-  }
+        return result;
+    }
 
-  public async Task<int> UpdateMySqlServer(MysqlServer server)
-  {
-    var sql = @"UPDATE mysql_servers 
+    public async Task<int> UpdateMySqlServer(MysqlServer server)
+    {
+        var sql = @"UPDATE mysql_servers 
             SET status = {2}, weight = {3}, compression = {4},
                 max_connections = {5}, max_replication_lag = {6},
                 use_ssl = {7}, max_latency_ms = {8}, comment = {9}
             WHERE hostgroup_id = {0} AND hostname = {1}";
 
-    return await dbContext.Database.ExecuteSqlRawAsync(sql,
-        server.HostgroupId, server.Hostname, server.Status, server.Weight,
-        server.Compression, server.MaxConnections, server.MaxReplicationLag,
-        server.UseSsl, server.MaxLatencyMs, server.Comment);
-  }
+        return await dbContext.Database.ExecuteSqlRawAsync(sql,
+            server.HostgroupId, server.Hostname, server.Status, server.Weight,
+            server.Compression, server.MaxConnections, server.MaxReplicationLag,
+            server.UseSsl, server.MaxLatencyMs, server.Comment);
+    }
 
-  public async Task<int> DeleteMySqlServer(int hostgroupId, string hostname)
-  {
-    return await dbContext.Database.ExecuteSqlRawAsync(
-        "DELETE FROM mysql_servers WHERE hostgroup_id = {0} AND hostname = {1}",
-        hostgroupId, hostname);
-  }
+    public async Task<int> DeleteMySqlServer(int hostgroupId, string hostname)
+    {
+        return await dbContext.Database.ExecuteSqlRawAsync(
+            "DELETE FROM mysql_servers WHERE hostgroup_id = {0} AND hostname = {1}",
+            hostgroupId, hostname);
+    }
 
-  // MySQL Users
-  public async Task<IEnumerable<MysqlUser>> GetMySqlUsers()
-  {
-    return await dbContext.MySqlUsers
-        .FromSqlRaw("SELECT * FROM mysql_users")
-        .ToListAsync();
-  }
+    // MySQL Users
+    public async Task<IEnumerable<MysqlUser>> GetMySqlUsers()
+    {
+        return await dbContext.MySqlUsers
+            .FromSqlRaw("SELECT * FROM mysql_users")
+            .ToListAsync();
+    }
 
-  public async Task<MysqlUser> GetMySqlUser(string username)
-  {
-    return await dbContext.MySqlUsers
-        .FromSqlRaw("SELECT * FROM mysql_users WHERE username = {0}", username)
-        .FirstOrDefaultAsync();
-  }
+    public async Task<MysqlUser> GetMySqlUser(string username)
+    {
+        return await dbContext.MySqlUsers
+            .FromSqlRaw("SELECT * FROM mysql_users WHERE username = {0}", username)
+            .FirstOrDefaultAsync();
+    }
 
-  public async Task<MysqlUser> AddMySqlUser(MysqlUser user)
-  {
-    var sql = @"INSERT INTO mysql_users 
+    public async Task<MysqlUser> AddMySqlUser(MysqlUser user)
+    {
+        var sql = @"INSERT INTO mysql_users 
             (username, password, active, use_ssl, default_hostgroup, default_schema,
              schema_locked, transaction_persistent, fast_forward, backend, frontend,
              max_connections, attributes, comment)
             VALUES 
             ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13})";
 
-    await dbContext.Database.ExecuteSqlRawAsync(sql,
-        user.Username, user.Password, user.Active, user.UseSsl,
-        user.DefaultHostgroup, user.DefaultSchema, user.SchemaLocked,
-        user.TransactionPersistent, user.FastForward, user.Backend,
-        user.Frontend, user.MaxConnections, user.Attributes, user.Comment);
+        await dbContext.Database.ExecuteSqlRawAsync(sql,
+            user.Username, user.Password, user.Active, user.UseSsl,
+            user.DefaultHostgroup, user.DefaultSchema, user.SchemaLocked,
+            user.TransactionPersistent, user.FastForward, user.Backend,
+            user.Frontend, user.MaxConnections, user.Attributes, user.Comment);
 
-    return user;
-  }
+        return user;
+    }
 
-  public async Task<int> UpdateMySqlUser(MysqlUser user)
-  {
-    var sql = @"UPDATE mysql_users 
+    public async Task<int> UpdateMySqlUser(MysqlUser user)
+    {
+        var sql = @"UPDATE mysql_users 
             SET password = {1}, active = {2}, use_ssl = {3},
                 default_hostgroup = {4}, default_schema = {5},
                 schema_locked = {6}, transaction_persistent = {7},
@@ -102,30 +102,30 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
                 max_connections = {10}, attributes = {11}, comment = {12}
             WHERE username = {0} AND backend = {13}";
 
-    return await dbContext.Database.ExecuteSqlRawAsync(sql,
-        user.Username, user.Password, user.Active, user.UseSsl,
-        user.DefaultHostgroup, user.DefaultSchema, user.SchemaLocked,
-        user.TransactionPersistent, user.FastForward, user.Frontend,
-        user.MaxConnections, user.Attributes, user.Comment, user.Backend);
-  }
+        return await dbContext.Database.ExecuteSqlRawAsync(sql,
+            user.Username, user.Password, user.Active, user.UseSsl,
+            user.DefaultHostgroup, user.DefaultSchema, user.SchemaLocked,
+            user.TransactionPersistent, user.FastForward, user.Frontend,
+            user.MaxConnections, user.Attributes, user.Comment, user.Backend);
+    }
 
-  public async Task<int> DeleteMySqlUser(string username)
-  {
-    return await dbContext.Database.ExecuteSqlRawAsync(
-        "DELETE FROM mysql_users WHERE username = {0}", username);
-  }
+    public async Task<int> DeleteMySqlUser(string username)
+    {
+        return await dbContext.Database.ExecuteSqlRawAsync(
+            "DELETE FROM mysql_users WHERE username = {0}", username);
+    }
 
-  // MySQL Query Rules
-  public async Task<IEnumerable<MysqlQueryRule>> GetMySqlQueryRules()
-  {
-    return await dbContext.MySqlQueryRules
-        .FromSqlRaw("SELECT * FROM mysql_query_rules")
-        .ToListAsync();
-  }
+    // MySQL Query Rules
+    public async Task<IEnumerable<MysqlQueryRule>> GetMySqlQueryRules()
+    {
+        return await dbContext.MySqlQueryRules
+            .FromSqlRaw("SELECT * FROM mysql_query_rules")
+            .ToListAsync();
+    }
 
-  public async Task<IEnumerable<QueryRuleViewModel>> GetQueryRulesWithStats()
-  {
-    const string sql = @"
+    public async Task<IEnumerable<QueryRuleViewModel>> GetQueryRulesWithStats()
+    {
+        const string sql = @"
 SELECT r.*, 
     COALESCE(s.hits, 0) as Hits, 
     MAX(d.digest_text) as DigestText,
@@ -142,19 +142,19 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
          r.multiplex, r.gtid_from_hostgroup, r.log, r.apply, r.attributes, r.comment,
          s.hits";
 
-    return dbContext.Database.SqlQueryRaw<QueryRuleViewModel>(sql);
-  }
+        return dbContext.Database.SqlQueryRaw<QueryRuleViewModel>(sql);
+    }
 
-  public async Task<MysqlQueryRule> GetMySqlQueryRule(int ruleId)
-  {
-    return await dbContext.MySqlQueryRules
-        .FromSqlRaw("SELECT * FROM mysql_query_rules WHERE rule_id = {0}", ruleId)
-        .FirstOrDefaultAsync();
-  }
+    public async Task<MysqlQueryRule> GetMySqlQueryRule(int ruleId)
+    {
+        return await dbContext.MySqlQueryRules
+            .FromSqlRaw("SELECT * FROM mysql_query_rules WHERE rule_id = {0}", ruleId)
+            .FirstOrDefaultAsync();
+    }
 
-  public async Task<int> AddMySqlQueryRule(MysqlQueryRule rule)
-  {
-    var sql = @"INSERT INTO mysql_query_rules 
+    public async Task<int> AddMySqlQueryRule(MysqlQueryRule rule)
+    {
+        var sql = @"INSERT INTO mysql_query_rules 
             (active, username, schemaname, flagIN, client_addr, proxy_addr,
              proxy_port, digest, match_digest, match_pattern, negate_match_pattern,
              re_modifiers, flagOUT, replace_pattern, destination_hostgroup,
@@ -168,26 +168,26 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
              {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29}, {30}, {31},
              {32}, {33})";
 
-    var result = await dbContext.Database.ExecuteSqlRawAsync(sql,
-        rule.Active, rule.Username, rule.Schemaname, rule.FlagIn,
-        rule.ClientAddr, rule.ProxyAddr, rule.ProxyPort, rule.Digest,
-        rule.MatchDigest, rule.MatchPattern, rule.NegateMatchPattern,
-        rule.ReModifiers, rule.FlagOut, rule.ReplacePattern,
-        rule.DestinationHostgroup, rule.CacheTtl, rule.CacheEmptyResult,
-        rule.CacheTimeout, rule.Reconnect, rule.Timeout, rule.Retries,
-        rule.Delay, rule.NextQueryFlagIn, rule.MirrorFlagOut,
-        rule.MirrorHostgroup, rule.ErrorMsg, rule.OKMsg, rule.StickyConn,
-        rule.Multiplex, rule.GtidFromHostgroup, rule.Log, rule.Apply,
-        rule.Attributes, rule.Comment);
+        var result = await dbContext.Database.ExecuteSqlRawAsync(sql,
+            rule.Active, rule.Username, rule.Schemaname, rule.FlagIn,
+            rule.ClientAddr, rule.ProxyAddr, rule.ProxyPort, rule.Digest,
+            rule.MatchDigest, rule.MatchPattern, rule.NegateMatchPattern,
+            rule.ReModifiers, rule.FlagOut, rule.ReplacePattern,
+            rule.DestinationHostgroup, rule.CacheTtl, rule.CacheEmptyResult,
+            rule.CacheTimeout, rule.Reconnect, rule.Timeout, rule.Retries,
+            rule.Delay, rule.NextQueryFlagIn, rule.MirrorFlagOut,
+            rule.MirrorHostgroup, rule.ErrorMsg, rule.OKMsg, rule.StickyConn,
+            rule.Multiplex, rule.GtidFromHostgroup, rule.Log, rule.Apply,
+            rule.Attributes, rule.Comment);
 
-    await LoadRulesToRuntime();
-    await SaveRulesToDisk();
-    return result;
-  }
+        await LoadRulesToRuntime();
+        await SaveRulesToDisk();
+        return result;
+    }
 
-  public async Task<int> UpdateMySqlQueryRule(MysqlQueryRule rule)
-  {
-    var sql = @"UPDATE mysql_query_rules 
+    public async Task<int> UpdateMySqlQueryRule(MysqlQueryRule rule)
+    {
+        var sql = @"UPDATE mysql_query_rules 
             SET active = {1}, username = {2}, schemaname = {3},
                 flagIN = {4}, client_addr = {5}, proxy_addr = {6},
                 proxy_port = {7}, digest = {8}, match_digest = {9},
@@ -202,37 +202,37 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
                 log = {31}, apply = {32}, attributes = {33}, comment = {34}
             WHERE rule_id = {0}";
 
-    var result = await dbContext.Database.ExecuteSqlRawAsync(sql,
-        rule.RuleId, rule.Active, rule.Username, rule.Schemaname,
-        rule.FlagIn, rule.ClientAddr, rule.ProxyAddr, rule.ProxyPort,
-        rule.Digest, rule.MatchDigest, rule.MatchPattern,
-        rule.NegateMatchPattern, rule.ReModifiers, rule.FlagOut,
-        rule.ReplacePattern, rule.DestinationHostgroup, rule.CacheTtl,
-        rule.CacheEmptyResult, rule.CacheTimeout, rule.Reconnect,
-        rule.Timeout, rule.Retries, rule.Delay, rule.NextQueryFlagIn,
-        rule.MirrorFlagOut, rule.MirrorHostgroup, rule.ErrorMsg,
-        rule.OKMsg, rule.StickyConn, rule.Multiplex,
-        rule.GtidFromHostgroup, rule.Log, rule.Apply,
-        rule.Attributes, rule.Comment);
+        var result = await dbContext.Database.ExecuteSqlRawAsync(sql,
+            rule.RuleId, rule.Active, rule.Username, rule.Schemaname,
+            rule.FlagIn, rule.ClientAddr, rule.ProxyAddr, rule.ProxyPort,
+            rule.Digest, rule.MatchDigest, rule.MatchPattern,
+            rule.NegateMatchPattern, rule.ReModifiers, rule.FlagOut,
+            rule.ReplacePattern, rule.DestinationHostgroup, rule.CacheTtl,
+            rule.CacheEmptyResult, rule.CacheTimeout, rule.Reconnect,
+            rule.Timeout, rule.Retries, rule.Delay, rule.NextQueryFlagIn,
+            rule.MirrorFlagOut, rule.MirrorHostgroup, rule.ErrorMsg,
+            rule.OKMsg, rule.StickyConn, rule.Multiplex,
+            rule.GtidFromHostgroup, rule.Log, rule.Apply,
+            rule.Attributes, rule.Comment);
 
-    await LoadRulesToRuntime();
-    await SaveRulesToDisk();
-    return result;
-  }
+        await LoadRulesToRuntime();
+        await SaveRulesToDisk();
+        return result;
+    }
 
-  public async Task<int> DeleteMySqlQueryRule(int ruleId)
-  {
-    var result = await dbContext.Database.ExecuteSqlRawAsync(
-        "DELETE FROM mysql_query_rules WHERE rule_id = {0}", ruleId);
-    await LoadRulesToRuntime();
-    await SaveRulesToDisk();
-    return result;
-  }
+    public async Task<int> DeleteMySqlQueryRule(int ruleId)
+    {
+        var result = await dbContext.Database.ExecuteSqlRawAsync(
+            "DELETE FROM mysql_query_rules WHERE rule_id = {0}", ruleId);
+        await LoadRulesToRuntime();
+        await SaveRulesToDisk();
+        return result;
+    }
 
-  // Stats
-  public async Task<IEnumerable<QueryDigestViewModel>> GetStatsMySqlQueryDigests()
-  {
-    const string sql = @"
+    // Stats
+    public async Task<IEnumerable<QueryDigestViewModel>> GetStatsMySqlQueryDigests()
+    {
+        const string sql = @"
         SELECT d.*,
                CASE WHEN r.rule_id IS NOT NULL THEN 1 ELSE 0 END as HasRule,
                r.rule_id as RuleId
@@ -240,70 +240,77 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
         LEFT JOIN mysql_query_rules r ON d.digest = r.digest
         where d.hostgroup >=0";
 
-    return await dbContext.Database.SqlQueryRaw<QueryDigestViewModel>(sql)
-        .ToListAsync();
-  }
+        return await dbContext.Database.SqlQueryRaw<QueryDigestViewModel>(sql)
+            .ToListAsync();
+    }
 
-  public async Task<IEnumerable<StatsMySqlQueryRule>> GetStatsMySqlQueryRules()
-  {
-    return await dbContext.StatsMySqlQueryRules
-        .FromSqlRaw("SELECT * FROM stats_mysql_query_rules")
-        .ToListAsync();
-  }
+    public async Task<IEnumerable<StatsMySqlQueryRule>> GetStatsMySqlQueryRules()
+    {
+        return await dbContext.StatsMySqlQueryRules
+            .FromSqlRaw("SELECT * FROM stats_mysql_query_rules")
+            .ToListAsync();
+    }
 
-  public async Task LoadRulesToRuntime()
-  {
-    await dbContext.Database.ExecuteSqlRawAsync("LOAD MYSQL QUERY RULES TO RUNTIME;");
-  }
+    public async Task LoadRulesToRuntime()
+    {
+        await dbContext.Database.ExecuteSqlRawAsync("LOAD MYSQL QUERY RULES TO RUNTIME;");
+    }
 
-  public async Task SaveRulesToDisk()
-  {
-    await dbContext.Database.ExecuteSqlRawAsync("SAVE MYSQL QUERY RULES TO DISK;");
-  }
-
-
-  public async Task<IEnumerable<GlobalVariableModel>> GetGlobalVariables()
-  {
-      return await dbContext.GlobalVariables.ToListAsync();
-  }
-
-  public async Task<int> UpdateGlobalVariable(GlobalVariableModel variable)
-  {
-      var result = await dbContext.Database.ExecuteSqlRawAsync(
-          "UPDATE global_variables SET variable_value = {0} WHERE variable_name = {1}",
-          variable.VariableValue, variable.VariableName);
-
-      await dbContext.Database.ExecuteSqlRawAsync(
-          "LOAD ADMIN VARIABLES TO RUNTIME");
-
-      return result;
-  }
+    public async Task SaveRulesToDisk()
+    {
+        await dbContext.Database.ExecuteSqlRawAsync("SAVE MYSQL QUERY RULES TO DISK;");
+    }
 
 
-  public async Task<Dictionary<string, string>> GetMySqlGlobalStats()
-  {
-      var stats = await dbContext.StatsMySqlGlobals.ToListAsync();
+    public async Task<IEnumerable<GlobalVariableModel>> GetGlobalVariables()
+    {
+        return await dbContext.GlobalVariables.ToListAsync();
+    }
 
-      return stats.ToDictionary(x => x.VariableName, x => x.VariableValue);
-  }
+    public async Task<int> UpdateGlobalVariable(GlobalVariableModel variable)
+    {
+        var result = await dbContext.Database.ExecuteSqlRawAsync(
+            "UPDATE global_variables SET variable_value = {0} WHERE variable_name = {1}",
+            variable.VariableValue, variable.VariableName);
 
-  public async Task<Dictionary<string, long>> GetMemoryMetrics()
-  {
-      var metrics = await dbContext.StatsMemoryMetrics.FromSqlRaw("SELECT * FROM stats_memory_metrics")
-          .ToListAsync();
+        await dbContext.Database.ExecuteSqlRawAsync(
+            "LOAD ADMIN VARIABLES TO RUNTIME");
 
-      return metrics.ToDictionary(x => x.VariableName, x => x.VariableValue);
-  }
+        return result;
+    }
 
-  public async Task<ServerStatusSummary> GetServerStatusSummary()
-  {
-      var servers = await GetMySqlServers();
 
-      return new ServerStatusSummary
-      {
-          Online = servers.Count(s => s.Status == "ONLINE"),
-          Offline = servers.Count(s => s.Status.StartsWith("OFFLINE")),
-          Shunned = servers.Count(s => s.Status == "SHUNNED")
-      };
-  }
+    public async Task<Dictionary<string, string>> GetMySqlGlobalStats()
+    {
+        var stats = await dbContext.StatsMySqlGlobals.ToListAsync();
+
+        return stats.ToDictionary(x => x.VariableName, x => x.VariableValue);
+    }
+
+    public async Task<Dictionary<string, long>> GetMemoryMetrics()
+    {
+        var metrics = await dbContext.StatsMemoryMetrics.FromSqlRaw("SELECT * FROM stats_memory_metrics")
+            .ToListAsync();
+
+        return metrics.ToDictionary(x => x.VariableName, x => x.VariableValue);
+    }
+    
+
+    public async Task ResetStats()
+    {
+        await dbContext.Database.ExecuteSqlRawAsync("SELECT 1 FROM stats_mysql_query_digest_reset LIMIT 1;");
+        await dbContext.Database.ExecuteSqlRawAsync("LOAD MYSQL QUERY RULES TO RUNTIME;");
+    }
+
+    public async Task<ServerStatusSummary> GetServerStatusSummary()
+    {
+        var servers = await GetMySqlServers();
+
+        return new ServerStatusSummary
+        {
+            Online = servers.Count(s => s.Status == "ONLINE"),
+            Offline = servers.Count(s => s.Status.StartsWith("OFFLINE")),
+            Shunned = servers.Count(s => s.Status == "SHUNNED")
+        };
+    }
 }
