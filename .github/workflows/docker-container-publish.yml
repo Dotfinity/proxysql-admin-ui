@@ -1,0 +1,31 @@
+name: Docker Image Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y.%m.%d')"
+      - uses: actions/checkout@v3
+      - name: Docker Login
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: https://index.docker.io/v1/
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESSTOKEN }}
+          logout: true
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v6.9.0
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          tags: |
+            "dotfinity/proxysql-admin-ui:${{ steps.date.outputs.date }}"
+            "dotfinity/proxysql-admin-ui:latest"
