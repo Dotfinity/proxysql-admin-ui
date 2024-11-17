@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: ["main"]
-
+    paths:
+      - "ProxysqlAdminUi.*/**"
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
