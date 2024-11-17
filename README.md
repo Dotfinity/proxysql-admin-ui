@@ -45,11 +45,15 @@ http://*:5000;http://localhost:5001;https://hostname:5002
 - [ ] Add support for environment variables for configuration
 - [ ] Use the `hostgroup -1` to show the stats of the cached queries, as that's not reset on LOAD STATS;
 - [ ] Add docker compose + caddy to run the project
+- [ ] improve the home page layout
+- [ ] the homepage cache gauge shows "wrong" data, it should show the number of cached queries vs the number of uncached queries, not the cache efficiency of query rules. The existing gauge should be renamed to "cache efficiency" and a new gauge should be added to show the number of cached queries vs the number of uncached queries
+- [ ] rows should be highlighted when hovering over them on the query digest page
 
 -------
 
 ## Done
 
+- [x] Add a way to refresh query digest stats without resetting the selected filters
 - [x] Custom db folder for sqlite
 - [x] Add a gauge to show the total number of cached vs uncached queries
 - [x] On the query digest page, add a button to cache the query for 1 minute, 5 minutes, 1 hour, 1 day, the button should be dropdown
