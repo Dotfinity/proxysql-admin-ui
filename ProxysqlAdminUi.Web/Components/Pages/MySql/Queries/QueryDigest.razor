@@ -8,77 +8,113 @@
 
 @inject ProxySqlRepository ProxySqlRepository
 @inject DialogService DialogService
-
+@inject NotificationService NotificationService
 
 <RadzenCard>
     <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">MySQL Query Digest Statistics</RadzenText>
 
-    <RadzenDataGrid TItem="QueryDigestViewModel"
-                    Data="@_queryDigests"
-                    AllowFiltering="true"
+    <RadzenDataGrid AllowColumnPicking="true"
+                    AllowColumnReorder="true"
                     AllowColumnResize="true"
+                    AllowFiltering="true"
+                    AllowMultiColumnSorting="true"
+                    AllowPaging="true"
+                    AllowPickAllColumns="true"
                     AllowSorting="true"
-                    ColumnWidth="auto"
-                    Density="Density.Compact"
                     AllowVirtualization="false"
+                    ColumnWidth="auto"
+                    Data="@_queryDigests"
+                    Density="Density.Default"
                     PageSize="300"
                     ShowColumnTitleAsTooltip="true"
-                    AllowColumnPicking="true"
-                    AllowColumnReorder="true"
-                    AllowPickAllColumns="true"
-                    AllowMultiColumnSorting="true"
-                    AllowPaging="true">
+                    TItem="QueryDigestViewModel">
+        <EmptyTemplate>
+            <RadzenText TagName="TagName.H3" Text="No data to display" />
+        </EmptyTemplate>
+        <HeaderTemplate>
+            <RadzenButton ButtonStyle="ButtonStyle.Primary" 
+                          Icon="refresh" 
+                          Text="Refresh Data" 
+                          Size="ButtonSize.Medium"
+                          Click="async () => await RefreshData()" />
+        </HeaderTemplate>
         <Columns>
-             
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Hostgroup)" HeaderTooltip="Target server hostgroup" Title="Hostgroup" Filterable="true" Sortable="true" Width="80px" />
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Schemaname)" HeaderTooltip="Database schema name" Title="Schema" Filterable="true" Sortable="true" Visible="false"/>
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Hostgroup)"
+                                  HeaderTooltip="Target server hostgroup" Title="Hostgroup" Filterable="true" Sortable="true" Width="80px" />
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Username)" HeaderTooltip="User executing the queries" Title="Username" Filterable="true" Sortable="true" Visible="false" />
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Schemaname)"
+                                  HeaderTooltip="Database schema name" Title="Schema" Filterable="true" Sortable="true" Visible="false" />
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.ClientAddress)" HeaderTooltip="Client IP address" Title="Client Address" Filterable="true" Sortable="true" Visible="false" />
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Username)"
+                                  HeaderTooltip="User executing the queries" Title="Username" Filterable="true" Sortable="true" Visible="false" />
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Digest)" HeaderTooltip="Query digest hash" Title="Digest" Filterable="true" Sortable="false" Width="180px" MinWidth="100px" />
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.ClientAddress)"
+                                  HeaderTooltip="Client IP address" Title="Client Address" Filterable="true" Sortable="true" Visible="false" />
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.DigestText)" Title="Query" Sortable="false"  Width="250px" MinWidth="300px">
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Digest)"
+                                  HeaderTooltip="Query digest hash" Title="Digest" Filterable="true" Sortable="false" Width="180px"
+                                  MinWidth="100px" />
+
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.DigestText)"
+                                  Title="Query" Sortable="false" Width="250px" MinWidth="300px">
                 <Template Context="digest">
                     <RadzenButton Size="ButtonSize.Small" Text="@ExtractDigestText(digest)"
                                   Click="async ()=> await ClikShowQueryDialog(digest.DigestText)" />
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.CountStar)" HeaderTooltip="Total number of times this query pattern was executed" Title="Query Count" Filterable="true" Sortable="true" />
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.CountStar)"
+                                  HeaderTooltip="Total number of times this query pattern was executed" Title="Query Count" Filterable="true"
+                                  Sortable="true" />
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.FirstSeen)" HeaderTooltip="First time this query pattern was seen" Title="First Seen" Filterable="true" Sortable="true" Visible="false" >
-            <Template Context="digest">
-                @DateTimeOffset.FromUnixTimeSeconds(digest.FirstSeen).LocalDateTime
-            </Template>
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.FirstSeen)"
+                                  HeaderTooltip="First time this query pattern was seen" Title="First Seen" Filterable="true" Sortable="true"
+                                  Visible="false">
+                <Template Context="digest">
+                    @DateTimeOffset.FromUnixTimeSeconds(digest.FirstSeen).LocalDateTime
+                </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.LastSeen)" HeaderTooltip="Last time this query pattern was seen" Title="Last Seen" Filterable="true" Sortable="true" Visible="false">
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.LastSeen)"
+                                  HeaderTooltip="Last time this query pattern was seen" Title="Last Seen" Filterable="true" Sortable="true"
+                                  Visible="false">
                 <Template Context="digest">
                     @DateTimeOffset.FromUnixTimeSeconds(digest.LastSeen).LocalDateTime
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumTime)" HeaderTooltip="Total execution time in microseconds" Title="Total Time (μs)" Filterable="true" Sortable="true" /> 
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumTime)"
+                                  HeaderTooltip="Total execution time in microseconds" Title="Total Time (μs)" Filterable="true"
+                                  Sortable="true" />
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.MinTime)" HeaderTooltip="Minimum query execution time in microseconds" Title="Min Time (μs)" Filterable="true" Sortable="true" />
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.MinTime)"
+                                  HeaderTooltip="Minimum query execution time in microseconds" Title="Min Time (μs)" Filterable="true"
+                                  Sortable="true" />
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.MaxTime)" HeaderTooltip="Maximum query execution time in microseconds" Title="Max Time (μs)" Filterable="true" Sortable="true" />
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.MaxTime)"
+                                  HeaderTooltip="Maximum query execution time in microseconds" Title="Max Time (μs)" Filterable="true"
+                                  Sortable="true" />
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumRowsAffected)" HeaderTooltip="Total number of rows affected by this query pattern" Title="Rows Affected" Filterable="true" Sortable="true" />
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumRowsAffected)"
+                                  HeaderTooltip="Total number of rows affected by this query pattern" Title="Rows Affected" Filterable="true"
+                                  Sortable="true" />
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumRowsSent)" HeaderTooltip="Total number of rows returned by this query pattern" Title="Rows Sent" Filterable="true" Sortable="true" />
- 
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumRowsSent)"
+                                  HeaderTooltip="Total number of rows returned by this query pattern" Title="Rows Sent" Filterable="true"
+                                  Sortable="true" />
 
-            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.RuleId)" HeaderTooltip="Associated routing rule ID if one exists" Title="Rule ID" Filterable="true" Sortable="true" Visible="false" />
-             
+
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.RuleId)"
+                                  HeaderTooltip="Associated routing rule ID if one exists" Title="Rule ID" Filterable="true" Sortable="true"
+                                  Visible="false" />
+
             <RadzenDataGridColumn Filterable="false" Sortable="false" Pickable="false" Width="180px" MinWidth="180px">
                 <Template Context="digest">
                     @if (!digest.HasRule)
                     {
-                        <RadzenSplitButton Icon="add" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Click="async args => await CreateRule(digest.Digest,args)" Text="Create Rule">
+                        <RadzenSplitButton Icon="add" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small"
+                                           Click="async args => await CreateRule(digest.Digest,args)" Text="Create Rule">
                             <ChildContent>
                                 <RadzenSplitButtonItem Text="Cache 1 minute" Value="1" />
                                 <RadzenSplitButtonItem Text="Cache 5 minutes" Value="5" />
@@ -91,10 +127,7 @@
                     }
                     else
                     {
-                        <RadzenButton ButtonStyle="ButtonStyle.Primary" 
-                                      Icon="edit" 
-                                      Text="Edit Rule"
-                                      Size="ButtonSize.Small"
+                        <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Text="Edit Rule" Size="ButtonSize.Small"
                                       Click="async ()=> await EditRule(digest.RuleId.Value)" />
                     }
                 </Template>
@@ -112,37 +145,36 @@
     {
         try
         {
-            _queryDigests = await ProxySqlRepository.GetStatsMySqlQueryDigests();
+            await RefreshData();
         }
         catch (Exception ex)
         {
             // Consider adding a Radzen notification or error handling
-            await Console.Error.WriteLineAsync($"Error loading query digests: {ex.Message}");
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error loading query digests: {ex.Message}");
+             
         }
     }
 
     private async Task EditRule(int ruleId)
     {
         await DialogService.OpenAsync<EditQueryRuleDialog>("Edit Rule",
-            new Dictionary<string, object> { { "RuleId", ruleId } });
+        new Dictionary<string, object> { { "RuleId", ruleId } });
 
         // Refresh data after edit
-        _queryDigests = await ProxySqlRepository.GetStatsMySqlQueryDigests();
-        StateHasChanged();
+        await RefreshData();
     }
 
     private async Task CreateRule(string digest, RadzenSplitButtonItem args)
     {
         await DialogService.OpenAsync<AddQueryRuleDialog>("Create Rule From Digest",
-            new Dictionary<string, object>
-            {
-                { "DigestParam", digest }, 
-                { "Minutes", int.Parse(args?.Value ?? "0")}
-            });
+        new Dictionary<string, object>
+                  {
+                    { "DigestParam", digest },
+                    { "Minutes", int.Parse(args?.Value ?? "0")}
+                  });
 
         // Refresh data after creation
-        _queryDigests = await ProxySqlRepository.GetStatsMySqlQueryDigests();
-        StateHasChanged();
+        await RefreshData();
     }
 
     private static string ExtractDigestText(QueryDigestViewModel digest)
@@ -152,16 +184,19 @@
 
     private async Task ClikShowQueryDialog(string digestText)
     {
-        await DialogService.OpenAsync<QueryDigestTextDialog>("Query", 
-            new Dictionary<string, object>
-            {
-                { "DigestText", digestText }
-            },
-            new DialogOptions()
+        await DialogService.OpenAsync<QueryDigestTextDialog>("Query",
+        new Dictionary<string, object> { { "DigestText", digestText } },
+        new DialogOptions()
             {
                 Resizable = true,
                 Draggable = true,
             }
         );
+    }
+
+    private async Task RefreshData()
+    {
+        _queryDigests = await ProxySqlRepository.GetStatsMySqlQueryDigests();
+        StateHasChanged();
     }
 }
