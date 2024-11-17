@@ -1,0 +1,66 @@
+datadir="/var/lib/proxysql"
+errorlog="/var/lib/proxysql/proxysql.log"
+
+admin_variables=
+{
+    # thse should be changed!
+    # NB: the first user (in this case admin:admin) can be used only from localhost, and when in container, that's never
+    # use radmin (remote admin) or add your own user
+    admin_credentials="admin:admin;radmin:radmin"
+    mysql_ifaces="0.0.0.0:6032"
+    admin-web_enabled=false
+    debug=false
+}
+
+mysql_variables=
+{
+    threads=8
+    mysql-auditlog_filename="mysql.log"
+    max_connections=2048
+    default_query_delay=0
+    default_query_timeout=36000000
+    have_compress=false
+    poll_timeout=2000
+    mysql-autocommit_false_is_transaction=true
+    interfaces="0.0.0.0:6033"
+    default_schema="information_schema"
+    stacksize=1048576
+    server_version="11.0.0"
+    mysql-forward_autocommit=true
+    connect_timeout_server=3000
+    # in a production environment, this should be a separate user, consult the proxysql documentation
+    monitor_username="test_user"
+    monitor_password="test_password"
+    monitor_history=600000
+    monitor_connect_interval=60000
+    monitor_ping_interval=10000
+    monitor_read_only_interval=1500
+    monitor_read_only_timeout=500
+    ping_interval_server_msec=120000
+    ping_timeout_server=500
+    commands_stats=true
+    sessions_sort=true
+    connect_retries_on_failure=10
+}
+
+ mysql_servers =
+ (
+  {
+   address="mariadb"
+   port=3306
+   hostgroup=0
+   max_connections=500
+  }
+ )
+
+mysql_users:
+ (
+  {
+   username = "test_user"
+   password = "test_password"
+   default_hostgroup = 0
+   max_connections=100
+   default_schema="test_db"
+   active = 1
+  }
+ )

@@ -1,0 +1,56 @@
+services:
+    app:
+      container_name: proxysql-admin-ui
+      image: dotfinity/proxysql-admin-ui:latest
+      restart: unless-stopped
+      environment:
+        ASPNETCORE_ENVIRONMENT: Development
+        ASPNETCORE_URLS: 'http://+:8000'
+        PAI_ConnectionStrings__ProxySqlContext: 'Server=x.x.x.x;Port=6033;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;'
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "10m"
+          max-file: "3"
+      ports:
+        - 8000:8000
+    proxysql:
+      image: proxysql/proxysql:2.7.1-debian
+      volumes:
+        - ./docker/proxysql.cnf:/etc/proxysql.cnf:ro
+        - proxysql:/var/lib/proxysql
+      restart: unless-stopped
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "10m"
+          max-file: "3"
+      ports:
+        - 6032:6032
+        - 6033:6033
+        - 6080:6080
+    mariadb:
+      image: mariadb:11
+      command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+      environment:
+        - MYSQL_ROOT_PASSWORD="root_password"
+        - MYSQL_ROOT_HOST="%"
+        - MYSQL_USER="test_user"
+        - MYSQL_PASSWORD="test_user"
+        - MYSQL_DATABASE="test_db"
+      volumes:
+        - mariadb:/var/lib/mysql
+      restart: unless-stopped
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "10m"
+          max-file: "3"
+      ports:
+         - 3306:3306
+volumes:
+  # ProxySQL data directory
+  # ideally, this should be mounted to a persistent external volume
+  # but for the sake of simplicity, we will use a docker volume
+  proxysql:
+  mariadb:

@@ -11,7 +11,7 @@ services:
           TARGETOS: linux
           BUILD_CONFIGURATION: Release
       environment:
-        - ASPNETCORE_ENVIRONMENT=Development
+        - ASPNETCORE_ENVIRONMENT=Production
         - ASPNETCORE_URLS=http://+:8000
       ports:
         - "17020:8000"
