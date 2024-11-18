@@ -11,25 +11,22 @@
 <AuthorizeView>
     <RadzenStack Gap="1rem">
         <RadzenRow>
+            <!-- Left Column-->
             <RadzenColumn Size="12" SizeMD="6">
-                <!-- Existing Query Cache Card -->
+                <!-- Query Cache Card -->
                 <RadzenCard>
-                    <RadzenText TextStyle="TextStyle.H5">Query Cache Utilization</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H5">Query Cache Efficiency</RadzenText>
                     <RadzenRow>
                         <RadzenColumn Size="12" SizeMD="6">
                             <RadzenArcGauge class="rz-w-100" Style="height:contain">
                                 <RadzenArcGaugeScale TickPosition="GaugeTickPosition.Outside" MinorStep="1" Step="10" Min="0" Max="100" Margin="10">
-                                    <RadzenArcGaugeScaleValue Value="@_cacheHitRatio" ShowValue>
-                                        <Template Context="arc_context">@($"{_cacheHitRatio:N1}% Cached")</Template>
+                                    <RadzenArcGaugeScaleValue Value="@_cacheHitRatio" ShowValue="true">
+                                        <Template Context="arc_context">@($"{_cacheHitRatio:N1}% Cache hit rate")</Template>
                                     </RadzenArcGaugeScaleValue>
                                 </RadzenArcGaugeScale>
                             </RadzenArcGauge>
                         </RadzenColumn>
                         <RadzenColumn Size="12" SizeMD="6">
-                            <RadzenCard class="rz-mb-4">
-                                <RadzenText TextStyle="TextStyle.Subtitle2">Uptime:</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatUptime(long.Parse(_globalStats.GetValueOrDefault("ProxySQL_Uptime", "0")))</RadzenText>
-                            </RadzenCard>
                             <RadzenRow>
                                 <RadzenColumn Size="12">
                                     <RadzenCard>
@@ -72,103 +69,8 @@
                         </RadzenStack>
                     </RadzenStack>
                 </RadzenCard>
-            </RadzenColumn>
-
-            <RadzenColumn Size="12" SizeMD="6">
-                <!-- All Time Stats-->
-                <RadzenCard>
-                    <RadzenText TextStyle="TextStyle.H5">ProxySQL All Time Stats</RadzenText>
-                    <RadzenStack Gap="1rem">
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Total Queries :</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(long.Parse(_globalStats.GetValueOrDefault("Questions", "0")))</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Slow Queries:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(long.Parse(_globalStats.GetValueOrDefault("Slow_queries", "0")))</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Cache Hits:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(long.Parse(_globalStats.GetValueOrDefault("Query_Cache_count_GET_OK", "0")))</RadzenText>
-                        </RadzenStack>
-                    </RadzenStack>
-                </RadzenCard>
-
-                <!-- Server Status Card -->
-                <RadzenCard class="rz-mt-4">
-                    <RadzenText TextStyle="TextStyle.H5">Server Status</RadzenText>
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceAround">
-                        <RadzenStack AlignItems="AlignItems.Center">
-                            <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@_serverStatus.Online.ToString()" />
-                            <RadzenText TextStyle="TextStyle.Body2">Online</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack AlignItems="AlignItems.Center">
-                            <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="@_serverStatus.Shunned.ToString()" />
-                            <RadzenText TextStyle="TextStyle.Body2">Shunned</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack AlignItems="AlignItems.Center">
-                            <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="@_serverStatus.Offline.ToString()" />
-                            <RadzenText TextStyle="TextStyle.Body2">Offline</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack AlignItems="AlignItems.Center">
-                            <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="@_serverStatus.Total.ToString()" />
-                            <RadzenText TextStyle="TextStyle.Body2">Total</RadzenText>
-                        </RadzenStack>
-                    </RadzenStack>
-                </RadzenCard>
-
-                <!-- Connection Health Card -->
-                <RadzenCard class="rz-mt-4">
-                    <RadzenText TextStyle="TextStyle.H5">Connection Health</RadzenText>
-                    <RadzenStack Gap="1rem">
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Active Connections:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@_globalStats.GetValueOrDefault("Client_Connections_connected", "0")</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Total Created:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@_globalStats.GetValueOrDefault("Client_Connections_created", "0")</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Aborted:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@_globalStats.GetValueOrDefault("Client_Connections_aborted", "0")</RadzenText>
-                        </RadzenStack>
-                    </RadzenStack>
-                </RadzenCard>
-            </RadzenColumn>
-        </RadzenRow>
-
-        <RadzenRow class="rz-mt-4">
-            <RadzenColumn Size="12" SizeMD="6">
-                <!-- Network Traffic Card-->
-                <RadzenCard>
-                    <RadzenText TextStyle="TextStyle.H5">Network Traffic</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Frontend</RadzenText>
-                    <RadzenStack Gap="1rem">
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Body2">Received:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_frontends_bytes_recv", "0")))</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Body2">Sent:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_frontends_bytes_sent", "0")))</RadzenText>
-                        </RadzenStack>
-                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mt-2 rz-mb-2">Backend</RadzenText>
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Body2">Received:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_backends_bytes_recv", "0")))</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Body2">Sent:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_backends_bytes_sent", "0")))</RadzenText>
-                        </RadzenStack>
-                    </RadzenStack>
-                </RadzenCard>
-            </RadzenColumn>
-
-            <RadzenColumn Size="12" SizeMD="6">
                 <!-- Monitor Health Card -->
-                <RadzenCard>
+                <RadzenCard class="rz-mt-4">
                     <RadzenText TextStyle="TextStyle.H5">Monitor Health</RadzenText>
                     <RadzenStack Gap="1rem">
                         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
@@ -198,6 +100,102 @@
                         </RadzenStack>
                     </RadzenStack>
                 </RadzenCard>
+            </RadzenColumn>
+
+            <!-- Right Column-->
+            <RadzenColumn Size="12" SizeMD="6">
+                <RadzenRow>
+                    <RadzenColumn Size="12" SizeMD="6">
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle2">Uptime:</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatUptime(long.Parse(_globalStats.GetValueOrDefault("ProxySQL_Uptime", "0")))</RadzenText>
+                        </RadzenCard>
+                        <!-- Server Status Card -->
+                        <RadzenCard class="rz-mt-4">
+                            <RadzenText TextStyle="TextStyle.H5">Server Status</RadzenText>
+                            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceAround">
+                                <RadzenStack AlignItems="AlignItems.Center">
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@_serverStatus.Online.ToString()"/>
+                                    <RadzenText TextStyle="TextStyle.Body2">Online</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack AlignItems="AlignItems.Center">
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="@_serverStatus.Shunned.ToString()"/>
+                                    <RadzenText TextStyle="TextStyle.Body2">Shunned</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack AlignItems="AlignItems.Center">
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="@_serverStatus.Offline.ToString()"/>
+                                    <RadzenText TextStyle="TextStyle.Body2">Offline</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack AlignItems="AlignItems.Center">
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="@_serverStatus.Total.ToString()"/>
+                                    <RadzenText TextStyle="TextStyle.Body2">Total</RadzenText>
+                                </RadzenStack>
+                            </RadzenStack>
+                        </RadzenCard>
+                        <!-- Connection Health Card -->
+                        <RadzenCard class="rz-mt-4">
+                            <RadzenText TextStyle="TextStyle.H5">Connection Health</RadzenText>
+                            <RadzenStack Gap="1rem">
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Active Connections:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@_globalStats.GetValueOrDefault("Client_Connections_connected", "0")</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Total Created:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@_globalStats.GetValueOrDefault("Client_Connections_created", "0")</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Aborted:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@_globalStats.GetValueOrDefault("Client_Connections_aborted", "0")</RadzenText>
+                                </RadzenStack>
+                            </RadzenStack>
+                        </RadzenCard>
+                    </RadzenColumn>
+                    <RadzenColumn Size="12" SizeMD="6">
+                        <!-- All Time Stats-->
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.H5">ProxySQL All-Time Stats</RadzenText>
+                            <RadzenStack Gap="1rem">
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Total Queries:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(long.Parse(_globalStats.GetValueOrDefault("Questions", "0")))</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Slow Queries:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(long.Parse(_globalStats.GetValueOrDefault("Slow_queries", "0")))</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Cache Hits:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(long.Parse(_globalStats.GetValueOrDefault("Query_Cache_count_GET_OK", "0")))</RadzenText>
+                                </RadzenStack>
+                            </RadzenStack>
+                        </RadzenCard>
+                        <!-- Network Traffic Card-->
+                        <RadzenCard class="rz-mt-4">
+                            <RadzenText TextStyle="TextStyle.H5">Network Traffic</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Frontend</RadzenText>
+                            <RadzenStack Gap="1rem">
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Body2">Received:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_frontends_bytes_recv", "0")))</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Body2">Sent:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_frontends_bytes_sent", "0")))</RadzenText>
+                                </RadzenStack>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mt-2 rz-mb-2">Backend</RadzenText>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Body2">Received:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_backends_bytes_recv", "0")))</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Body2">Sent:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_backends_bytes_sent", "0")))</RadzenText>
+                                </RadzenStack>
+                            </RadzenStack>
+                        </RadzenCard>
+                    </RadzenColumn >
+                </RadzenRow>
             </RadzenColumn>
         </RadzenRow>
     </RadzenStack>
