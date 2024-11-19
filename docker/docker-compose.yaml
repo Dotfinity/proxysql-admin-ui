@@ -6,7 +6,7 @@ services:
       environment:
         ASPNETCORE_ENVIRONMENT: Development
         ASPNETCORE_URLS: 'http://+:8000'
-        PAI_ConnectionStrings__ProxySqlContext: 'Server=x.x.x.x;Port=6033;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;'
+        PAI_ConnectionStrings__ProxySqlContext: 'Server=proxysql;Port=6033;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;'
       logging:
         driver: "json-file"
         options:
