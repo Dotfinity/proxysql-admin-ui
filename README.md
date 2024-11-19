@@ -1,6 +1,25 @@
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dotfinity/proxysql-admin-ui/docker-container-publish.yml)
+
+----
+
 # ProxySQL Admin UI
 
 A modern web interface for managing ProxySQL, built with Blazor and .NET Core.
+
+## Screenshots
+
+<a href="https://img.dotfinity.eu/proxysql-admin-ui-dashboard-page.png">
+  <img src="https://img.dotfinity.eu/proxysql-admin-ui-dashboard-page.png" alt="Dashboard" width="400" height="200"/>
+</a>
+<a href="https://img.dotfinity.eu/proxysql-admin-ui-query-digest-stats-page.png">
+  <img src="https://img.dotfinity.eu/proxysql-admin-ui-query-digest-stats-page.png" alt="Qiery digest stats" width="400" height="200"/>
+</a>
+<a href="https://img.dotfinity.eu/proxysql-admin-ui-query-rules-page.png">
+  <img src="https://img.dotfinity.eu/proxysql-admin-ui-query-rules-page.png" alt="Query rules page" width="400" height="200"/>
+</a>
+<a href="https://img.dotfinity.eu/proxysql-admin-ui-global-variables-page.png">
+  <img src="https://img.dotfinity.eu/proxysql-admin-ui-global-variables-page.png" alt="Admin global variables editor page" width="400" height="200"/>
+</a>
 
 ## Features
 
