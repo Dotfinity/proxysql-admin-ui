@@ -5,7 +5,7 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "ProxysqlAdminUi.*/**"
+      - "**/ProxysqlAdminUi.*/**"
 jobs:
   build:
     runs-on: ubuntu-latest
