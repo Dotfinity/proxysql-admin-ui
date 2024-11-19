@@ -1,6 +1,6 @@
 ﻿namespace ProxysqlAdminUi.Web.ViewModel;
 
-public class ServerStatusSummary
+public class ServerStatusSummaryViewModel
 {
     public int Online { get; set; }
     public int Offline { get; set; }

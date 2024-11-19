@@ -9,10 +9,10 @@
 
 <h3>Users</h3>
 
-<RadzenDataGrid TItem="MysqlUser" Data="@MySqlUsersList" AllowPaging="true" PageSize="10">
+<RadzenDataGrid TItem="MysqlUserModel" Data="@MySqlUsersList" AllowPaging="true" PageSize="10">
     <Columns>
-        <RadzenDataGridColumn Property="@nameof(MysqlUser.Username)" Title="Username" />
-        <RadzenDataGridColumn Property="@nameof(MysqlUser.DefaultHostgroup)" Title="Default Hostgroup" />
+        <RadzenDataGridColumn Property="@nameof(MysqlUserModel.Username)" Title="Username" />
+        <RadzenDataGridColumn Property="@nameof(MysqlUserModel.DefaultHostgroup)" Title="Default Hostgroup" />
         <RadzenDataGridColumn>
             <Template>
                 <RadzenButton Click="@ShowEditModal" Text="Edit" Icon="Edit"></RadzenButton>
@@ -25,7 +25,7 @@
 
 @code {
 
-    private List<MysqlUser> MySqlUsersList { get; set; } = new();
+    private List<MysqlUserModel> MySqlUsersList { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -33,7 +33,7 @@
         StateHasChanged();
     }
 
-    private async Task<IEnumerable<MysqlUser>> GetMySqlUsersAsync()
+    private async Task<IEnumerable<MysqlUserModel>> GetMySqlUsersAsync()
     {
         return await ProxySqlRepository.GetMySqlUsers();
     }

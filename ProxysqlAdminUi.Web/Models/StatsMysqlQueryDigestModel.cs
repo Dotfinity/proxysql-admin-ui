@@ -6,7 +6,7 @@ namespace ProxysqlAdminUi.Web.Models;
 
 [Table("stats_mysql_query_digest")]
 [PrimaryKey(nameof(Hostgroup), nameof(Schemaname), nameof(Username), nameof(ClientAddress), nameof(Digest))]
-public class StatsMysqlQueryDigest
+public class StatsMysqlQueryDigestModel
 {
 
     [Column("hostgroup", Order = 0)]

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace ProxysqlAdminUi.Web.Models;
 
 [Table("stats_mysql_query_rules")]
-public class StatsMySqlQueryRule
+public class StatsMySqlQueryRuleModel
 {
     [Key]
     [Column("rule_id")]
@@ -19,7 +19,7 @@ public class StatsMySqlQueryRule
         if (obj == null || GetType() != obj.GetType())
             return false;
 
-        var other = (StatsMySqlQueryRule)obj;
+        var other = (StatsMySqlQueryRuleModel)obj;
         return RuleId == other.RuleId;
     }
 

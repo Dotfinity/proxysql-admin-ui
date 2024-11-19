@@ -6,7 +6,7 @@ namespace ProxysqlAdminUi.Web.Models;
 
 [Table("mysql_users")]
 [PrimaryKey(nameof(Username), nameof(Backend))]
-public class MysqlUser
+public class MysqlUserModel
 {
 
     [Column("username", Order = 0)]

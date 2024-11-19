@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace ProxysqlAdminUi.Web.Models;
 
 [Table("mysql_query_rules")]
-public class MysqlQueryRule
+public class MysqlQueryRuleModel
 {
     [Key]
     [Column("rule_id")]

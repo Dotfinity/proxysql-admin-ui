@@ -12,7 +12,7 @@
 <RadzenContent Container="main">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <RadzenTemplateForm TItem="MysqlQueryRule" Data=@queryRule Submit=@OnConfirmDelete>
+            <RadzenTemplateForm TItem="MysqlQueryRuleModel" Data=@queryRule Submit=@OnConfirmDelete>
                 <RadzenCard>
                     <div class="row">
                         <div class="col">
@@ -62,7 +62,7 @@
     [Parameter]
     public int RuleId { get; set; }
 
-    private MysqlQueryRule queryRule;
+    private MysqlQueryRuleModel queryRule;
     private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()

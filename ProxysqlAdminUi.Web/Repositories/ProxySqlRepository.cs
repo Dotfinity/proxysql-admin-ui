@@ -8,21 +8,21 @@ namespace ProxysqlAdminUi.Web.Repositories;
 public class ProxySqlRepository(ProxySqlContext dbContext)
 {
     // MySQL Servers
-    public async Task<IEnumerable<MysqlServer>> GetMySqlServers()
+    public async Task<IEnumerable<MysqlServerModel>> GetMySqlServers()
     {
         return await dbContext.MySqlServers
             .FromSqlRaw("SELECT * FROM mysql_servers")
             .ToListAsync();
     }
 
-    public async Task<MysqlServer> GetMySqlServer(string hostname)
+    public async Task<MysqlServerModel> GetMySqlServer(string hostname)
     {
         return await dbContext.MySqlServers
             .FromSqlRaw("SELECT * FROM mysql_servers WHERE hostname = {0}", hostname)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<int> AddMySqlServer(MysqlServer server)
+    public async Task<int> AddMySqlServer(MysqlServerModel server)
     {
         var sql = @"INSERT INTO mysql_servers 
             (hostgroup_id, hostname, port, gtid_port, status, weight, compression, 
@@ -38,7 +38,7 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
         return result;
     }
 
-    public async Task<int> UpdateMySqlServer(MysqlServer server)
+    public async Task<int> UpdateMySqlServer(MysqlServerModel server)
     {
         var sql = @"UPDATE mysql_servers 
             SET status = {2}, weight = {3}, compression = {4},
@@ -60,21 +60,21 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
     }
 
     // MySQL Users
-    public async Task<IEnumerable<MysqlUser>> GetMySqlUsers()
+    public async Task<IEnumerable<MysqlUserModel>> GetMySqlUsers()
     {
         return await dbContext.MySqlUsers
             .FromSqlRaw("SELECT * FROM mysql_users")
             .ToListAsync();
     }
 
-    public async Task<MysqlUser> GetMySqlUser(string username)
+    public async Task<MysqlUserModel> GetMySqlUser(string username)
     {
         return await dbContext.MySqlUsers
             .FromSqlRaw("SELECT * FROM mysql_users WHERE username = {0}", username)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<MysqlUser> AddMySqlUser(MysqlUser user)
+    public async Task<MysqlUserModel> AddMySqlUser(MysqlUserModel user)
     {
         var sql = @"INSERT INTO mysql_users 
             (username, password, active, use_ssl, default_hostgroup, default_schema,
@@ -92,7 +92,7 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
         return user;
     }
 
-    public async Task<int> UpdateMySqlUser(MysqlUser user)
+    public async Task<int> UpdateMySqlUser(MysqlUserModel user)
     {
         var sql = @"UPDATE mysql_users 
             SET password = {1}, active = {2}, use_ssl = {3},
@@ -116,7 +116,7 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
     }
 
     // MySQL Query Rules
-    public async Task<IEnumerable<MysqlQueryRule>> GetMySqlQueryRules()
+    public async Task<IEnumerable<MysqlQueryRuleModel>> GetMySqlQueryRules()
     {
         return await dbContext.MySqlQueryRules
             .FromSqlRaw("SELECT * FROM mysql_query_rules")
@@ -145,14 +145,14 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
         return dbContext.Database.SqlQueryRaw<QueryRuleViewModel>(sql);
     }
 
-    public async Task<MysqlQueryRule> GetMySqlQueryRule(int ruleId)
+    public async Task<MysqlQueryRuleModel> GetMySqlQueryRule(int ruleId)
     {
         return await dbContext.MySqlQueryRules
             .FromSqlRaw("SELECT * FROM mysql_query_rules WHERE rule_id = {0}", ruleId)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<int> AddMySqlQueryRule(MysqlQueryRule rule)
+    public async Task<int> AddMySqlQueryRule(MysqlQueryRuleModel rule)
     {
         var sql = @"INSERT INTO mysql_query_rules 
             (active, username, schemaname, flagIN, client_addr, proxy_addr,
@@ -185,7 +185,7 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
         return result;
     }
 
-    public async Task<int> UpdateMySqlQueryRule(MysqlQueryRule rule)
+    public async Task<int> UpdateMySqlQueryRule(MysqlQueryRuleModel rule)
     {
         var sql = @"UPDATE mysql_query_rules 
             SET active = {1}, username = {2}, schemaname = {3},
@@ -244,7 +244,7 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<StatsMySqlQueryRule>> GetStatsMySqlQueryRules()
+    public async Task<IEnumerable<StatsMySqlQueryRuleModel>> GetStatsMySqlQueryRules()
     {
         return await dbContext.StatsMySqlQueryRules
             .FromSqlRaw("SELECT * FROM stats_mysql_query_rules")
@@ -302,11 +302,11 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
         await dbContext.Database.ExecuteSqlRawAsync("LOAD MYSQL QUERY RULES TO RUNTIME;");
     }
 
-    public async Task<ServerStatusSummary> GetServerStatusSummary()
+    public async Task<ServerStatusSummaryViewModel> GetServerStatusSummary()
     {
         var servers = await GetMySqlServers();
 
-        return new ServerStatusSummary
+        return new ServerStatusSummaryViewModel
         {
             Online = servers.Count(s => s.Status == "ONLINE"),
             Offline = servers.Count(s => s.Status.StartsWith("OFFLINE")),

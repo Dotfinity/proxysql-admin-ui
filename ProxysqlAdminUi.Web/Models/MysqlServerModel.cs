@@ -7,7 +7,7 @@ namespace ProxysqlAdminUi.Web.Models;
 
 [Table("mysql_servers")]
 [PrimaryKey(nameof(HostgroupId), nameof(Hostname), nameof(Port))]
-public class MysqlServer
+public class MysqlServerModel
 {
 
     [Column("hostgroup_id", Order = 0)]

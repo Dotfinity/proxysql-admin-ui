@@ -10,11 +10,11 @@
 
 <h3>MySQL Servers</h3>
 
-<RadzenDataGrid TItem="MysqlServer" Data="@MySqlServers" AllowPaging="true" PageSize="10">
+<RadzenDataGrid TItem="MysqlServerModel" Data="@MySqlServers" AllowPaging="true" PageSize="10">
     <Columns>
-        <RadzenDataGridColumn Property="@nameof(MysqlServer.HostgroupId)" Title="Host Group ID" />
-        <RadzenDataGridColumn Property="@nameof(MysqlServer.Hostname)" Title="Hostname" />
-        <RadzenDataGridColumn Property="@nameof(MysqlServer.Port)" Title="Port" />
+        <RadzenDataGridColumn Property="@nameof(MysqlServerModel.HostgroupId)" Title="Host Group ID" />
+        <RadzenDataGridColumn Property="@nameof(MysqlServerModel.Hostname)" Title="Hostname" />
+        <RadzenDataGridColumn Property="@nameof(MysqlServerModel.Port)" Title="Port" />
         <RadzenDataGridColumn>
             <Template>
                 <RadzenButton Text="Edit" Click="@ShowEditModal" Icon="Edit" />
@@ -25,14 +25,14 @@
 </RadzenDataGrid>
 
 @code {
-    private List<MysqlServer> MySqlServers { get; set; } = new();
+    private List<MysqlServerModel> MySqlServers { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
         MySqlServers = (await GetMySqlServersAsync()).ToList();
     }
 
-    private async Task<IEnumerable<MysqlServer>> GetMySqlServersAsync()
+    private async Task<IEnumerable<MysqlServerModel>> GetMySqlServersAsync()
     {
         return await ProxySqlRepository.GetMySqlServers();
     }

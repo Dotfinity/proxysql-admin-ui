@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProxysqlAdminUi.Web.Models;
 
-[Table("stats_memory_metrics")]
-public class StatsMemoryMetrics
+[Table("stats_mysql_global")]
+public class StatsMySqlGlobalModel
 {
     [Key]
     [Column("Variable_Name")]
     public string VariableName { get; set; }
 
     [Column("Variable_Value")]
-    public long VariableValue { get; set; }
+    public string VariableValue { get; set; }
 }

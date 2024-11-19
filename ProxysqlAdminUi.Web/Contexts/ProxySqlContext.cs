@@ -6,14 +6,14 @@ namespace ProxysqlAdminUi.Web.Contexts;
 
 public class ProxySqlContext(DbContextOptions<ProxySqlContext> options) : DbContext(options)
 {
-    public DbSet<MysqlQueryRule> MySqlQueryRules { get; set; }
-    public DbSet<StatsMySqlQueryRule> StatsMySqlQueryRules { get; set; }
-    public DbSet<StatsMysqlQueryDigest> StatsMySqlQueryDigests { get; set; }
-    public DbSet<MysqlServer> MySqlServers { get; set; }
-    public DbSet<MysqlUser> MySqlUsers { get; set; }
+    public DbSet<MysqlQueryRuleModel> MySqlQueryRules { get; set; }
+    public DbSet<StatsMySqlQueryRuleModel> StatsMySqlQueryRules { get; set; }
+    public DbSet<StatsMysqlQueryDigestModel> StatsMySqlQueryDigests { get; set; }
+    public DbSet<MysqlServerModel> MySqlServers { get; set; }
+    public DbSet<MysqlUserModel> MySqlUsers { get; set; }
 
     public DbSet<GlobalVariableModel> GlobalVariables { get; set; }
 
-    public DbSet<StatsMySqlGlobal> StatsMySqlGlobals { get; set; }
-    public DbSet<StatsMemoryMetrics> StatsMemoryMetrics { get; set; }
+    public DbSet<StatsMySqlGlobalModel> StatsMySqlGlobals { get; set; }
+    public DbSet<StatsMemoryMetricsModel> StatsMemoryMetrics { get; set; }
 }

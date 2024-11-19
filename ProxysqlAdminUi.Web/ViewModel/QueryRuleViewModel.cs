@@ -2,7 +2,7 @@
 
 namespace ProxysqlAdminUi.Web.ViewModel;
 
-public class QueryRuleViewModel : MysqlQueryRule
+public class QueryRuleViewModel : MysqlQueryRuleModel
 {
     // Additional stats properties
     public long Hits { get; set; } = 0;
