@@ -14,6 +14,9 @@
     <RadzenColumn Size="2">
         <RadzenButton Text="Reset Statistics" Click="@Reload" Icon="refresh" ButtonStyle="ButtonStyle.Light" />
     </RadzenColumn>
+    <RadzenColumn Size="2">
+        <RadzenButton Text="Flush Query Cache" Click="@FlushCache" Icon="clear_all" ButtonStyle="ButtonStyle.Light" />
+    </RadzenColumn>
 </RadzenRow>
 
 
@@ -24,5 +27,11 @@
     {
         await ProxySqlRepository.ResetStats();
         NotificationService.Notify(NotificationSeverity.Success, "Statistics reset", "ProxySQL statistics have been reset");
+    }
+
+    private async Task FlushCache()
+    {
+        await ProxySqlRepository.FlushQueryCache();
+        NotificationService.Notify(NotificationSeverity.Success, "Cache Flushed", "Query cache has been flushed");
     }
 }

@@ -302,6 +302,11 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
         await dbContext.Database.ExecuteSqlRawAsync("LOAD MYSQL QUERY RULES TO RUNTIME;");
     }
 
+    public async Task FlushQueryCache()
+    {
+        await dbContext.Database.ExecuteSqlRawAsync("PROXYSQL FLUSH QUERY CACHE;");
+    }
+
     public async Task<ServerStatusSummaryViewModel> GetServerStatusSummary()
     {
         var servers = await GetMySqlServers();
