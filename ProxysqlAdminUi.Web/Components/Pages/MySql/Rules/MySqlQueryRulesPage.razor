@@ -12,9 +12,10 @@
     <RadzenColumn Order="1" Size="3">
         <RadzenText Text="Query Rules" TextStyle="TextStyle.DisplayH3" TextAlign="TextAlign.Left" />
     </RadzenColumn>
-    <RadzenColumn Order="10" Size="2" Offset="7">
-        <RadzenStack AlignItems="AlignItems.End">
-            <RadzenButton Icon="add" ButtonStyle="ButtonStyle.Primary" Text="Add Rule" Click="CreateNewQueryRule"></RadzenButton>
+    <RadzenColumn Order="10" Size="3" Offset="6">
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1rem">
+            <RadzenButton Icon="refresh" ButtonStyle="ButtonStyle.Light" Text="Refresh" Click="RefreshRules" />
+            <RadzenButton Icon="add" ButtonStyle="ButtonStyle.Primary" Text="Add Rule" Click="CreateNewQueryRule" />
         </RadzenStack>
     </RadzenColumn>
 </RadzenRow>
@@ -167,6 +168,12 @@
         return await ProxySqlRepository.GetQueryRulesWithStats();
     }
 
+    private async Task RefreshRules()
+    {
+        MysqlQueryRulesList = (await GetMySqlRulesAsync()).ToList();
+        StateHasChanged();
+    }
+    
     private async Task ShowEditModal(int ruleId)
     {
         await DialogService.OpenAsync<EditQueryRuleDialog>("Edit Rule " + ruleId,
