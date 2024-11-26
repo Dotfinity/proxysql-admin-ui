@@ -3,17 +3,20 @@
 @using ProxysqlAdminUi.Web.Components.Pages.MySql.Rules
 @using ProxysqlAdminUi.Web.Repositories
 @using ProxysqlAdminUi.Web.ViewModel
+@using System.Text.Json;
 
 @attribute [Authorize]
 
 @inject ProxySqlRepository ProxySqlRepository
 @inject DialogService DialogService
 @inject NotificationService NotificationService
+@inject IJSRuntime JSRuntime
 
 <RadzenCard>
     <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">MySQL Query Digest Statistics</RadzenText>
 
-    <RadzenDataGrid AllowColumnPicking="true"
+    <RadzenDataGrid @ref="_grid"
+                    AllowColumnPicking="true"
                     AllowColumnReorder="true"
                     AllowColumnResize="true"
                     AllowFiltering="true"
@@ -27,7 +30,9 @@
                     Density="Density.Default"
                     PageSize="300"
                     ShowColumnTitleAsTooltip="true"
-                    TItem="QueryDigestViewModel">
+                    TItem="QueryDigestViewModel"
+                    PickedColumnsChanged="OnColumnUpdated"
+                    >
         <EmptyTemplate>
             <RadzenText TagName="TagName.H3" Text="No data to display" />
         </EmptyTemplate>
@@ -44,13 +49,13 @@
                                   HeaderTooltip="Target server hostgroup" Title="Hostgroup" Filterable="true" Sortable="true" Width="80px" />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Schemaname)"
-                                  HeaderTooltip="Database schema name" Title="Schema" Filterable="true" Sortable="true" Visible="false" />
+                                  HeaderTooltip="Database schema name" Title="Schema" Filterable="true" Sortable="true"  />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Username)"
-                                  HeaderTooltip="User executing the queries" Title="Username" Filterable="true" Sortable="true" Visible="false" />
+                                  HeaderTooltip="User executing the queries" Title="Username" Filterable="true" Sortable="true"  />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.ClientAddress)"
-                                  HeaderTooltip="Client IP address" Title="Client Address" Filterable="true" Sortable="true" Visible="false" />
+                                  HeaderTooltip="Client IP address" Title="Client Address" Filterable="true" Sortable="true" />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Digest)"
                                   HeaderTooltip="Query digest hash" Title="Digest" Filterable="true" Sortable="false" Width="180px"
@@ -70,7 +75,7 @@
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.FirstSeen)"
                                   HeaderTooltip="First time this query pattern was seen" Title="First Seen" Filterable="true" Sortable="true"
-                                  Visible="false">
+                                  >
                 <Template Context="digest">
                     @DateTimeOffset.FromUnixTimeSeconds(digest.FirstSeen).LocalDateTime
                 </Template>
@@ -78,7 +83,7 @@
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.LastSeen)"
                                   HeaderTooltip="Last time this query pattern was seen" Title="Last Seen" Filterable="true" Sortable="true"
-                                  Visible="false">
+                                  >
                 <Template Context="digest">
                     @DateTimeOffset.FromUnixTimeSeconds(digest.LastSeen).LocalDateTime
                 </Template>
@@ -107,9 +112,9 @@
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.RuleId)"
                                   HeaderTooltip="Associated routing rule ID if one exists" Title="Rule ID" Filterable="true" Sortable="true"
-                                  Visible="false" />
+                                  />
 
-            <RadzenDataGridColumn Filterable="false" Sortable="false" Pickable="false" Width="180px" MinWidth="180px">
+            <RadzenDataGridColumn Property="BtnCol" Filterable="false" Sortable="false" Pickable="false" Width="180px" MinWidth="180px" Visible="true">
                 <Template Context="digest">
                     @if (!digest.HasRule)
                     {
@@ -138,9 +143,25 @@
 </RadzenCard>
 
 @code {
-
+    
+    private RadzenDataGrid<QueryDigestViewModel> _grid;
+    private const string COLUMN_SETTINGS_KEY = "queryDigestColumns";
+ 
     private IEnumerable<QueryDigestViewModel> _queryDigests = new List<QueryDigestViewModel>();
-
+    
+    private static readonly List<string> _defaultColumnsVisible =
+    [
+        nameof(QueryDigestViewModel.Hostgroup),
+        nameof(QueryDigestViewModel.Digest),
+        nameof(QueryDigestViewModel.DigestText),
+        nameof(QueryDigestViewModel.CountStar),
+        nameof(QueryDigestViewModel.MaxTime),
+        nameof(QueryDigestViewModel.MinTime),
+        nameof(QueryDigestViewModel.SumTime),
+        nameof(QueryDigestViewModel.SumRowsSent),
+        nameof(QueryDigestViewModel.SumRowsSent)
+    ];
+    
     protected override async Task OnInitializedAsync()
     {
         try
@@ -149,10 +170,14 @@
         }
         catch (Exception ex)
         {
-            // Consider adding a Radzen notification or error handling
-            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error loading query digests: {ex.Message}");
-             
+            NotificationService.Notify(NotificationSeverity.Error, "Error", 
+                $"Error loading query digests: {ex.Message}");
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await LoadColumnSettings();
     }
 
     private async Task EditRule(int ruleId)
@@ -197,6 +222,44 @@
     private async Task RefreshData()
     {
         _queryDigests = await ProxySqlRepository.GetStatsMySqlQueryDigests();
+        StateHasChanged();
+    }
+    
+    private async Task OnColumnUpdated(DataGridPickedColumnsChangedEventArgs<QueryDigestViewModel> changedEventArgs)
+    {
+        if (_grid == null) return;
+        
+        // Radzen sends the list of selected columns and their visibility
+        // but a just picked column is not yet visible, so we should not filter on visibility.
+        var visibleColumns = changedEventArgs.Columns 
+            .Select(c => c.Property)
+            .ToList();
+        
+        var settings = JsonSerializer.Serialize(visibleColumns);
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", COLUMN_SETTINGS_KEY, settings);
+    }
+    
+    private async Task LoadColumnSettings()
+    {
+        if (_grid == null) return;
+
+        var visibleColumns = _defaultColumnsVisible;
+        
+        var settings = await JSRuntime.InvokeAsync<string>("localStorage.getItem", COLUMN_SETTINGS_KEY);
+        
+        if (!string.IsNullOrEmpty(settings))
+        { 
+            visibleColumns = JsonSerializer.Deserialize<List<string>>(settings);
+        }
+        
+        foreach (var column in _grid.ColumnsCollection)
+        {
+            // if the proprty "Visible" is set in the "html" part,
+            // then this has no effect on the column visibility.
+            var isContained = visibleColumns.Contains(column.Property);
+            column.Visible = isContained;
+        }
+ 
         StateHasChanged();
     }
 }

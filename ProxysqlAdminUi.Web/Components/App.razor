@@ -24,5 +24,5 @@
     private HttpContext HttpContext { get; set; } = default!;
     
     // https://stackoverflow.com/questions/77599233/blazor-net-8-and-global-interactivity-issue-with-identity/77599354#77599354
-    private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Account") ? null : InteractiveServer;
+    private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Account") ? null : new InteractiveServerRenderMode(false);
 }
