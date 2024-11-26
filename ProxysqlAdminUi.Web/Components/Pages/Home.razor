@@ -31,75 +31,82 @@
                                 <RadzenColumn Size="12">
                                     <RadzenCard>
                                         <RadzenText TextStyle="TextStyle.Subtitle2">Total Queries</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.H6">@_totalQueries.ToString("N0")</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.H6">@_totalQueries.ToString("###,###,###,###,###")</RadzenText>
                                     </RadzenCard>
                                 </RadzenColumn>
                                 <RadzenColumn Size="6">
-
                                     <RadzenCard>
                                         <RadzenText TextStyle="TextStyle.Subtitle2">Cached</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.H6">@_cachedQueries.ToString("N0")</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.H6">@_cachedQueries.ToString("###,###,###,###,###")</RadzenText>
                                     </RadzenCard>
                                 </RadzenColumn>
                                 <RadzenColumn Size="6">
                                     <RadzenCard>
                                         <RadzenText TextStyle="TextStyle.Subtitle2">Uncached</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.H6">@_uncachedQueries.ToString("N0")</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.H6">@_uncachedQueries.ToString("###,###,###,###,###")</RadzenText>
                                     </RadzenCard>
                                 </RadzenColumn>
                             </RadzenRow>
                         </RadzenColumn>
                     </RadzenRow>
                 </RadzenCard>
-                <!-- Memory Statistics Card -->
-                <RadzenCard class="rz-mt-4">
-                    <RadzenText TextStyle="TextStyle.H5">Memory Usage</RadzenText>
-                    <RadzenStack Gap="1rem">
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Query Cache:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Query_Cache_Memory_bytes", "0")))</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Connection Pool:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("ConnPool_memory_bytes", "0")))</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Total Allocated:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(_memoryMetrics.GetValueOrDefault("jemalloc_allocated", 0))</RadzenText>
-                        </RadzenStack>
-                    </RadzenStack>
-                </RadzenCard>
-                <!-- Monitor Health Card -->
-                <RadzenCard class="rz-mt-4">
-                    <RadzenText TextStyle="TextStyle.H5">Monitor Health</RadzenText>
-                    <RadzenStack Gap="1rem">
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Monitor Workers:</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@_globalStats.GetValueOrDefault("MySQL_Monitor_Workers", "0")</RadzenText>
-                        </RadzenStack>
-                        <RadzenStack>
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Connect Checks</RadzenText>
-                            <RadzenProgressBar Value="@GetSuccessRate("MySQL_Monitor_connect_check_OK", "MySQL_Monitor_connect_check_ERR")"
-                                               class="rz-mt-2">
-                                <Template>@GetSuccessString("MySQL_Monitor_connect_check_OK", "MySQL_Monitor_connect_check_ERR")</Template>
-                            </RadzenProgressBar>
-                        </RadzenStack>
-                        <RadzenStack>
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Ping Checks</RadzenText>
-                            <RadzenProgressBar Value="@GetSuccessRate("MySQL_Monitor_ping_check_OK", "MySQL_Monitor_ping_check_ERR")"
-                                               class="rz-mt-2">
-                                <Template>@GetSuccessString("MySQL_Monitor_ping_check_OK", "MySQL_Monitor_ping_check_ERR")</Template>
-                            </RadzenProgressBar>
-                        </RadzenStack>
-                        <RadzenStack>
-                            <RadzenText TextStyle="TextStyle.Subtitle2">DNS Cache</RadzenText>
-                            <RadzenProgressBar Value="@GetSuccessRate("MySQL_Monitor_dns_cache_lookup_success", "MySQL_Monitor_dns_cache_queried")"
-                                               class="rz-mt-2">
-                                <Template>@GetSuccessString("MySQL_Monitor_dns_cache_lookup_success", "MySQL_Monitor_dns_cache_queried")</Template>
-                            </RadzenProgressBar>
-                        </RadzenStack>
-                    </RadzenStack>
-                </RadzenCard>
+                <RadzenRow>
+                    <RadzenColumn Size="12" SizeMD="6">
+                        <!-- Memory Statistics Card -->
+                        <RadzenCard class="rz-mt-4">
+                            <RadzenText TextStyle="TextStyle.H5">Memory Usage</RadzenText>
+                            <RadzenStack Gap="1rem">
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Query Cache:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Query_Cache_Memory_bytes", "0")))</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Connection Pool:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("ConnPool_memory_bytes", "0")))</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Total Allocated:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(_memoryMetrics.GetValueOrDefault("jemalloc_allocated", 0))</RadzenText>
+                                </RadzenStack>
+                            </RadzenStack>
+                        </RadzenCard>
+                    </RadzenColumn>
+                    <RadzenColumn Size="12" SizeMD="6">
+                        <!-- Monitor Health Card -->
+                        <RadzenCard class="rz-mt-4">
+                            <RadzenText TextStyle="TextStyle.H5">Monitor Health</RadzenText>
+                            <RadzenStack Gap="1rem">
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Monitor Workers:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@_globalStats.GetValueOrDefault("MySQL_Monitor_Workers", "0")</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack>
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Connect Checks</RadzenText>
+                                    <RadzenProgressBar Value="@GetSuccessRate("MySQL_Monitor_connect_check_OK", "MySQL_Monitor_connect_check_ERR")"
+                                                       class="rz-mt-2">
+                                        <Template>@GetSuccessString("MySQL_Monitor_connect_check_OK", "MySQL_Monitor_connect_check_ERR")</Template>
+                                    </RadzenProgressBar>
+                                </RadzenStack>
+                                <RadzenStack>
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Ping Checks</RadzenText>
+                                    <RadzenProgressBar Value="@GetSuccessRate("MySQL_Monitor_ping_check_OK", "MySQL_Monitor_ping_check_ERR")"
+                                                       class="rz-mt-2">
+                                        <Template>@GetSuccessString("MySQL_Monitor_ping_check_OK", "MySQL_Monitor_ping_check_ERR")</Template>
+                                    </RadzenProgressBar>
+                                </RadzenStack>
+                                <RadzenStack>
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">DNS Cache</RadzenText>
+                                    <RadzenProgressBar Value="@GetSuccessRate("MySQL_Monitor_dns_cache_lookup_success", "MySQL_Monitor_dns_cache_queried")"
+                                                       class="rz-mt-2">
+                                        <Template>@GetSuccessString("MySQL_Monitor_dns_cache_lookup_success", "MySQL_Monitor_dns_cache_queried")</Template>
+                                    </RadzenProgressBar>
+                                </RadzenStack>
+                            </RadzenStack>
+                        </RadzenCard>
+                    </RadzenColumn>
+                </RadzenRow>
+               
+               
             </RadzenColumn>
 
             <!-- Right Column-->
@@ -107,7 +114,7 @@
                 <RadzenRow>
                     <RadzenColumn Size="12" SizeMD="6">
                         <RadzenCard>
-                            <RadzenText TextStyle="TextStyle.Subtitle2">Uptime:</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H5">Uptime</RadzenText>
                             <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatUptime(long.Parse(_globalStats.GetValueOrDefault("ProxySQL_Uptime", "0")))</RadzenText>
                         </RadzenCard>
                         <!-- Server Status Card -->
