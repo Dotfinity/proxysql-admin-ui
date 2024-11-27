@@ -92,6 +92,13 @@ environment:
   PAI_ConnectionStrings__ProxySqlContext: 'Server=proxysql;Port=6033;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;'
 ```
 
+## Random notes
+
+>One query rule can have many digests! 
+> example: if one rule matches by table prefix "ps_setting*"
+> if there are 10 tables being accessed, via 20 queries, that would result in 40 different digests. 
+> 20 for the uncached queries and 20 for the cache hits. 
+
 
 ## License
 

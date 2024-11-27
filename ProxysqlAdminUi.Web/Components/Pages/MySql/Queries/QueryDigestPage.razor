@@ -72,7 +72,11 @@
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.CountStar)"
                                   HeaderTooltip="Total number of times this query pattern was executed" Title="Query Count" Filterable="true"
                                   Sortable="true" />
-
+            
+            <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.CacheHits)"
+                                  HeaderTooltip="Total number of times this query pattern was executed" Title="Cache Hits" Filterable="true"
+                                  Sortable="true" />
+            
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.FirstSeen)"
                                   HeaderTooltip="First time this query pattern was seen" Title="First Seen" Filterable="true" Sortable="true"
                                   >
@@ -155,10 +159,8 @@
         nameof(QueryDigestViewModel.Digest),
         nameof(QueryDigestViewModel.DigestText),
         nameof(QueryDigestViewModel.CountStar),
-        nameof(QueryDigestViewModel.MaxTime),
-        nameof(QueryDigestViewModel.MinTime),
+        nameof(QueryDigestViewModel.CacheHits),
         nameof(QueryDigestViewModel.SumTime),
-        nameof(QueryDigestViewModel.SumRowsSent),
         nameof(QueryDigestViewModel.SumRowsSent)
     ];
     

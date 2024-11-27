@@ -129,7 +129,7 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
 SELECT r.*, 
     COALESCE(s.hits, 0) as Hits, 
     MAX(d.digest_text) as DigestText,
-    COALESCE(SUM(CASE WHEN d.hostgroup >= 0 THEN d.count_star ELSE 0 END), 0) as CountStar
+    CASE WHEN d.hostgroup >= 0 THEN d.count_star ELSE 0 END as CountStar
 FROM mysql_query_rules r 
 LEFT JOIN stats_mysql_query_rules s ON r.rule_id = s.rule_id
 LEFT JOIN stats_mysql_query_digest d ON r.digest = d.digest
@@ -232,13 +232,22 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
     // Stats
     public async Task<IEnumerable<QueryDigestViewModel>> GetStatsMySqlQueryDigests()
     {
-        const string sql = @"
-        SELECT d.*,
-               CASE WHEN r.rule_id IS NOT NULL THEN 1 ELSE 0 END as HasRule,
-               r.rule_id as RuleId
-        FROM stats_mysql_query_digest d
-        LEFT JOIN mysql_query_rules r ON d.digest = r.digest
-        where d.hostgroup >=0";
+        const string sql = """
+                                  SELECT d.*,
+                                  rd.count_star                                     as CacheHits,
+                                  CASE WHEN r.rule_id IS NOT NULL THEN 1 ELSE 0 END as HasRule,
+                                  r.rule_id                                         as RuleId
+                           FROM stats_mysql_query_digest d
+                                    LEFT JOIN stats_mysql_query_digest rd
+                                              ON d.digest = rd.digest
+                                                  and d.username = rd.username
+                                                  and d.schemaname = rd.schemaname
+                                                  and rd.hostgroup = -1
+                                    left join mysql_query_rules r
+                                              on r.digest = d.digest
+                           where d.hostgroup = 0
+                           order by d.count_star desc
+                           """;
 
         return await dbContext.Database.SqlQueryRaw<QueryDigestViewModel>(sql)
             .ToListAsync();
