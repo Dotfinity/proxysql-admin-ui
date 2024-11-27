@@ -16,6 +16,7 @@
     <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">MySQL Query Digest Statistics</RadzenText>
 
     <RadzenDataGrid @ref="_grid"
+                    Visible="@_gridVisible"
                     AllowColumnPicking="true"
                     AllowColumnReorder="true"
                     AllowColumnResize="true"
@@ -150,7 +151,7 @@
     
     private RadzenDataGrid<QueryDigestViewModel> _grid;
     private const string COLUMN_SETTINGS_KEY = "queryDigestColumns";
- 
+    private bool _gridVisible = false;
     private IEnumerable<QueryDigestViewModel> _queryDigests = new List<QueryDigestViewModel>();
     
     private static readonly List<string> _defaultColumnsVisible =
@@ -164,22 +165,21 @@
         nameof(QueryDigestViewModel.SumRowsSent)
     ];
     
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            await RefreshData();
-        }
-        catch (Exception ex)
-        {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", 
-                $"Error loading query digests: {ex.Message}");
-        }
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await LoadColumnSettings();
+        if (firstRender)
+        {
+            await LoadColumnSettings();
+            try
+            {
+                await RefreshData();
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error", 
+                    $"Error loading query digests: {ex.Message}");
+            }
+        }
     }
 
     private async Task EditRule(int ruleId)
@@ -261,7 +261,8 @@
             var isContained = visibleColumns.Contains(column.Property);
             column.Visible = isContained;
         }
- 
+
+        _gridVisible = true;
         StateHasChanged();
     }
 }
