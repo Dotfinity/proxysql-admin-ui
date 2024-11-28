@@ -2,6 +2,7 @@
 
 @using ProxysqlAdminUi.Web.Models
 @using ProxysqlAdminUi.Web.Repositories
+@using ProxysqlAdminUi.Web.Components.Common
 
 @attribute [Authorize]
 
@@ -49,12 +50,12 @@
                                 </RadzenStack>
                             </RadzenColumn>
                         </RadzenRow>
-
+                        
                         <RadzenRow>
-                            <RadzenColumn Size="6">
+                            <RadzenColumn Size="12">
                                 <RadzenStack>
                                     <RadzenLabel Text="Cache TTL" />
-                                    <RadzenNumeric @bind-Value=@_queryRule.CacheTtl Name="@nameof(MysqlQueryRuleModel.CacheTtl)" Min="1" />
+                                    <TimeInput @bind-Value="_queryRule.CacheTtl" />
                                 </RadzenStack>
                             </RadzenColumn>
                             <RadzenColumn Size="6">

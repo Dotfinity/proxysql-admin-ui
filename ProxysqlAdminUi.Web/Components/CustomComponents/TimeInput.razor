@@ -1,0 +1,58 @@
+﻿@namespace ProxysqlAdminUi.Web.Components.Common
+
+<RadzenRow>
+    <RadzenColumn Size="3">
+        <RadzenLabel Text="Hours" />
+        <RadzenNumeric Min="0" @bind-Value="Hours" />
+    </RadzenColumn>
+    <RadzenColumn Size="3">
+        <RadzenLabel Text="Minutes" />
+        <RadzenNumeric Min="0" Max="59" @bind-Value="Minutes" />
+    </RadzenColumn>
+    <RadzenColumn Size="3">
+        <RadzenLabel Text="Seconds" />
+        <RadzenNumeric Min="0" Max="59" @bind-Value="Seconds" />
+    </RadzenColumn>
+    <RadzenColumn Size="3">
+        <RadzenLabel Text="Milliseconds" />
+        <RadzenNumeric Min="0" Max="999" @bind-Value="Milliseconds" />
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Parameter]
+    public int? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<int?> ValueChanged { get; set; }
+
+    private int Hours
+    {
+        get => Value.GetValueOrDefault() / 3600000;
+        set => UpdateValue(value, Minutes, Seconds, Milliseconds);
+    }
+
+    private int Minutes
+    {
+        get => (Value.GetValueOrDefault() % 3600000) / 60000;
+        set => UpdateValue(Hours, value, Seconds, Milliseconds);
+    }
+
+    private int Seconds
+    {
+        get => (Value.GetValueOrDefault() % 60000) / 1000;
+        set => UpdateValue(Hours, Minutes, value, Milliseconds);
+    }
+
+    private int Milliseconds
+    {
+        get => Value.GetValueOrDefault() % 1000;
+        set => UpdateValue(Hours, Minutes, Seconds, value);
+    }
+
+    private Task UpdateValue(int h, int m, int s, int ms)
+    {
+        var total = (h * 3600000) + (m * 60000) + (s * 1000) + ms;
+        return ValueChanged.InvokeAsync(total);
+    }
+}
