@@ -73,7 +73,21 @@
                                 </RadzenStack>
                             </RadzenColumn>
                         </RadzenRow>
-
+                        <!-- User & Schema Settings -->
+                        <RadzenRow>
+                            <RadzenColumn Size="6">
+                                <RadzenStack>
+                                    <RadzenLabel Text="Username" />
+                                    <RadzenTextBox @bind-Value=@_queryRule.Username Name="@nameof(MysqlQueryRuleModel.Username)" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                            <RadzenColumn Size="6">
+                                <RadzenStack>
+                                    <RadzenLabel Text="Schema Name" />
+                                    <RadzenTextBox @bind-Value=@_queryRule.Schemaname Name="@nameof(MysqlQueryRuleModel.Schemaname)" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                        </RadzenRow>
                         <RadzenRow>
                             <RadzenColumn Size="12">
                                 <RadzenStack>
@@ -86,22 +100,6 @@
                         <!-- Expandable Advanced Section -->
                         <RadzenPanel Text="Advanced Settings" AllowCollapse="true" Collapsed="true">
                             <RadzenStack Gap="1rem">
-                                <!-- User & Schema Settings -->
-                                <RadzenRow>
-                                    <RadzenColumn Size="6">
-                                        <RadzenStack>
-                                            <RadzenLabel Text="Username" />
-                                            <RadzenTextBox @bind-Value=@_queryRule.Username Name="@nameof(MysqlQueryRuleModel.Username)" />
-                                        </RadzenStack>
-                                    </RadzenColumn>
-                                    <RadzenColumn Size="6">
-                                        <RadzenStack>
-                                            <RadzenLabel Text="Schema Name" />
-                                            <RadzenTextBox @bind-Value=@_queryRule.Schemaname Name="@nameof(MysqlQueryRuleModel.Schemaname)" />
-                                        </RadzenStack>
-                                    </RadzenColumn>
-                                </RadzenRow>
-
                                 <!-- Networking -->
                                 <RadzenRow>
                                     <RadzenColumn Size="4">
@@ -289,12 +287,13 @@
 </RadzenContent>
 
 @code {
-    [Parameter]
-    public string? DigestParam { get; set; }
+    [Parameter] public string? DigestParam { get; set; }
 
-    [Parameter]
-    public int? Minutes { get; set; }
-
+    [Parameter] public int? Minutes { get; set; }
+    
+    [Parameter] public string? Username { get; set; }
+    [Parameter] public string? Schemaname { get; set; }
+    
     private MysqlQueryRuleModel _queryRule = new()
         {
             Active = true,
@@ -306,6 +305,9 @@
     protected override Task OnInitializedAsync()
     {
         _queryRule.Digest = DigestParam;
+        _queryRule.Username = Username;
+        _queryRule.Schemaname = Schemaname;
+        
         if (Minutes != null)
         {
             _queryRule.CacheTtl = Minutes.Value * 60_000;

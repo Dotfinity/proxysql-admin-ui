@@ -124,7 +124,7 @@
                     @if (!digest.HasRule)
                     {
                         <RadzenSplitButton Icon="add" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small"
-                                           Click="async args => await CreateRule(digest.Digest,args)" Text="Create Rule">
+                                           Click="async args => await CreateRule(digest,args)" Text="Create Rule">
                             <ChildContent>
                                 <RadzenSplitButtonItem Text="Cache 1 minute" Value="1" />
                                 <RadzenSplitButtonItem Text="Cache 5 minutes" Value="5" />
@@ -191,13 +191,15 @@
         await RefreshData();
     }
 
-    private async Task CreateRule(string digest, RadzenSplitButtonItem args)
+    private async Task CreateRule(QueryDigestViewModel  digest, RadzenSplitButtonItem args)
     {
         await DialogService.OpenAsync<AddQueryRuleDialog>("Create Rule From Digest",
         new Dictionary<string, object>
                   {
-                    { "DigestParam", digest },
-                    { "Minutes", int.Parse(args?.Value ?? "0")}
+                      { "DigestParam", digest.Digest },
+                      { "Minutes", int.Parse(args?.Value ?? "0")},
+                      { "Username", digest.Username },
+                      { "Schemaname", digest.Schemaname }
                   });
 
         // Refresh data after creation

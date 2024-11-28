@@ -73,6 +73,21 @@
                                 </RadzenStack>
                             </RadzenColumn>
                         </RadzenRow>
+                        <!-- User & Schema Settings -->
+                        <RadzenRow>
+                            <RadzenColumn Size="6">
+                                <RadzenStack>
+                                    <RadzenLabel Text="Username" />
+                                    <RadzenTextBox @bind-Value=@_queryRule.Username Name="@nameof(MysqlQueryRuleModel.Username)" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                            <RadzenColumn Size="6">
+                                <RadzenStack>
+                                    <RadzenLabel Text="Schema Name" />
+                                    <RadzenTextBox @bind-Value=@_queryRule.Schemaname Name="@nameof(MysqlQueryRuleModel.Schemaname)" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                        </RadzenRow>
 
                         <RadzenRow>
                             <RadzenColumn Size="12">
@@ -86,22 +101,7 @@
                         <!-- Expandable Advanced Section -->
                         <RadzenPanel Text="Advanced Settings" AllowCollapse="true" Collapsed="true">
                             <RadzenStack Gap="1rem">
-                                <!-- User & Schema Settings -->
-                                <RadzenRow>
-                                    <RadzenColumn Size="6">
-                                        <RadzenStack>
-                                            <RadzenLabel Text="Username" />
-                                            <RadzenTextBox @bind-Value=@_queryRule.Username Name="@nameof(MysqlQueryRuleModel.Username)" />
-                                        </RadzenStack>
-                                    </RadzenColumn>
-                                    <RadzenColumn Size="6">
-                                        <RadzenStack>
-                                            <RadzenLabel Text="Schema Name" />
-                                            <RadzenTextBox @bind-Value=@_queryRule.Schemaname Name="@nameof(MysqlQueryRuleModel.Schemaname)" />
-                                        </RadzenStack>
-                                    </RadzenColumn>
-                                </RadzenRow>
-
+                              
                                 <!-- Networking -->
                                 <RadzenRow>
                                     <RadzenColumn Size="4">
