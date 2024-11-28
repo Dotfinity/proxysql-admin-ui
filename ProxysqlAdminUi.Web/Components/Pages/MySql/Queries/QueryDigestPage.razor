@@ -1,9 +1,11 @@
 ﻿@page "/mysql/queries/digest"
 
+@using System.Globalization
 @using ProxysqlAdminUi.Web.Components.Pages.MySql.Rules
 @using ProxysqlAdminUi.Web.Repositories
 @using ProxysqlAdminUi.Web.ViewModel
 @using System.Text.Json;
+@using ProxysqlAdminUi.Web.Extensions
 
 @attribute [Authorize]
 
@@ -71,11 +73,11 @@
             </RadzenDataGridColumn>
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.CountStar)"
-                                  HeaderTooltip="Total number of times this query pattern was executed" Title="Query Count" Filterable="true"
+                                  HeaderTooltip="Total number of times this query pattern was executed" Title="Query Count" FormatString="{0:### ### ### ### ###}" Filterable="true"
                                   Sortable="true" />
             
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.CacheHits)"
-                                  HeaderTooltip="Total number of times this query pattern was executed" Title="Cache Hits" Filterable="true"
+                                  HeaderTooltip="Total number of times this query pattern was executed" Title="Cache Hits" FormatString="{0:### ### ### ### ###}"  Filterable="true"
                                   Sortable="true" />
             
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.FirstSeen)"
@@ -95,8 +97,12 @@
             </RadzenDataGridColumn>
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumTime)"
-                                  HeaderTooltip="Total execution time in microseconds" Title="Total Time (μs)" Filterable="true"
-                                  Sortable="true" />
+                                  HeaderTooltip="Total execution time in microseconds" Title="Total Time" Filterable="true"
+                                  Sortable="true">
+                <Template Context="digest">
+                    @FormatHelper.FormatMicroseconds(digest.SumTime)
+                </Template>
+            </RadzenDataGridColumn>
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.MinTime)"
                                   HeaderTooltip="Minimum query execution time in microseconds" Title="Min Time (μs)" Filterable="true"
@@ -107,11 +113,11 @@
                                   Sortable="true" />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumRowsAffected)"
-                                  HeaderTooltip="Total number of rows affected by this query pattern" Title="Rows Affected" Filterable="true"
+                                  HeaderTooltip="Total number of rows affected by this query pattern" Title="Rows Affected"  FormatString="{0:### ### ### ### ###}" Filterable="true"
                                   Sortable="true" />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumRowsSent)"
-                                  HeaderTooltip="Total number of rows returned by this query pattern" Title="Rows Sent" Filterable="true"
+                                  HeaderTooltip="Total number of rows returned by this query pattern" Title="Rows Sent"  FormatString="{0:### ### ### ### ###}" Filterable="true"
                                   Sortable="true" />
 
 

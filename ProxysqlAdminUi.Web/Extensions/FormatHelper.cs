@@ -38,12 +38,11 @@ public static class FormatHelper
     
     public static string FormatMicroseconds(long microseconds)
     {
-        var timeSpan = TimeSpan.FromTicks(microseconds * 10); // Convert to ticks (1 microsecond = 10 ticks)
+        var ts = TimeSpan.FromMicroseconds(microseconds);
         
-        return timeSpan.TotalHours >= 1 
-            ? $"{timeSpan:hh\\:mm\\:ss\\.ffffff}"
-            : timeSpan.TotalMinutes >= 1 
-                ? $"{timeSpan:mm\\:ss\\.ffffff}" 
-                : $"{timeSpan:ss\\.ffffff}";
+        return ts.Days > 0 ? $"{ts.Days}d {ts:hh\\:mm\\:ss\\.ffffff}" :
+            ts.Hours > 0 ? $"{ts:hh\\:mm\\:ss\\.ffffff}" :
+            ts.Minutes > 0 ? $"{ts:mm\\:ss\\.ffffff}" : 
+            $"{ts:ss\\.ffffff}";
     }
 }
