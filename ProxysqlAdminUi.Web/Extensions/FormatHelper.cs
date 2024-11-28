@@ -34,4 +34,16 @@ public static class FormatHelper
 
         return number.ToString();
     }
+    
+    
+    public static string FormatMicroseconds(long microseconds)
+    {
+        var timeSpan = TimeSpan.FromTicks(microseconds * 10); // Convert to ticks (1 microsecond = 10 ticks)
+        
+        return timeSpan.TotalHours >= 1 
+            ? $"{timeSpan:hh\\:mm\\:ss\\.ffffff}"
+            : timeSpan.TotalMinutes >= 1 
+                ? $"{timeSpan:mm\\:ss\\.ffffff}" 
+                : $"{timeSpan:ss\\.ffffff}";
+    }
 }
