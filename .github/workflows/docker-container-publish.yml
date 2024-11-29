@@ -26,6 +26,8 @@ jobs:
         with:
           context: .
           file: ./docker/Dockerfile
+          build-args: |
+            BUILD_VERSION=${{ steps.date.outputs.date }}-{{ github.run_id }}
           push: true
           tags: |
             "dotfinity/proxysql-admin-ui:${{ steps.date.outputs.date }}"
