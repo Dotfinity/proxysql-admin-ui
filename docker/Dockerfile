@@ -16,7 +16,7 @@ COPY . .
 WORKDIR "/src/ProxysqlAdminUi.Web"
 
 RUN sed -i 's|<InformationalVersion>.*</InformationalVersion>|<InformationalVersion>'${BUILD_VERSION}'</InformationalVersion>|g' ProxysqlAdminUi.Web.csproj
-RUN sed -i 's|<VersionSuffix>.*</VersionSuffix>|<VersionSuffix>'${BUILD_SUFFIX}'</VersionSuffix>|g' ProxysqlAdminUi.Web.csproj
+RUN sed -i 's|<VersionSuffix>.*</VersionSuffix>|<VersionSuffix>+'${BUILD_SUFFIX}'</VersionSuffix>|g' ProxysqlAdminUi.Web.csproj
 
 RUN dotnet build "./ProxysqlAdminUi.Web.csproj" -c $BUILD_CONFIGURATION --runtime $RUNTIME -o /app/build
 
