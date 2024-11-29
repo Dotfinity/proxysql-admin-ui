@@ -7,7 +7,7 @@
 		<UserSecretsId>aspnet-BlazorApp1-07983579-be1b-4ab0-ad40-8d9b0eb6a245</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<DockerfileContext>.</DockerfileContext>
-
+		<Version>0.0.0-dev</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
