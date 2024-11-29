@@ -13,6 +13,7 @@ RUN dotnet restore --runtime $RUNTIME "./ProxysqlAdminUi.Web/ProxysqlAdminUi.Web
 COPY . .
 WORKDIR "/src/ProxysqlAdminUi.Web"
 
+RUN sed -i 's|<InformationalVersion>.*</InformationalVersion>|<InformationalVersion>'"${BUILD_VERSION}"'</InformationalVersion>|g' ProxysqlAdminUi.Web.csproj
 RUN dotnet build "./ProxysqlAdminUi.Web.csproj" -c $BUILD_CONFIGURATION --runtime $RUNTIME -o /app/build
 
 RUN dotnet publish "./ProxysqlAdminUi.Web.csproj" --runtime $RUNTIME --no-restore -c $BUILD_CONFIGURATION --self-contained -o /app/publish /p:UseAppHost=true

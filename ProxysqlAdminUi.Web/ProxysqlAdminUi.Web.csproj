@@ -10,6 +10,7 @@
 		<RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
 		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
 		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0-alpine</ContainerBaseImage>
+		<InformationalVersion>x</InformationalVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -33,7 +34,7 @@
 		<Folder Include="db\" />
 	</ItemGroup>
 	<ItemGroup>
-    <ContainerPort Include="8081" />
+		<ContainerPort Include="8081" />
 	</ItemGroup>
 
 </Project>
