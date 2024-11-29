@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase 
+﻿@inherits LayoutComponentBase
+@inject AppVersion AppVersion
 
 <RadzenComponents @rendermode="InteractiveServer" />
 
@@ -13,12 +14,16 @@
             <RadzenMenuItem Text="Global Variables" Icon="settings" Path="/proxysql/global-variables" />
             <RadzenMenuItem Text="Actions" Icon="build" Path="/proxysql/actions" />
         </RadzenMenu>
+       
     </RadzenHeader>
     <RadzenBody>
         @Body
     </RadzenBody>
+    <RadzenFooter Style="height:30px;padding-top:2px;">
+        <RadzenBadge BadgeStyle="BadgeStyle.Info"><RadzenLink Style="color:white;" Path="@("https://github.com/Dotfinity/proxysql-admin-ui/releases/"+AppVersion.Version)" Text="@AppVersion.Version" /></RadzenBadge>
+    </RadzenFooter>
 </RadzenLayout>
 
 @code {
-    bool sidebar1Expanded = true;
+    bool sidebar1Expanded = true; 
 }
