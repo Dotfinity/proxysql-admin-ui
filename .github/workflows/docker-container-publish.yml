@@ -13,7 +13,11 @@ jobs:
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y.%m.%d')"
+
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
       - name: Docker Login
         uses: docker/login-action@v3.3.0
         with:
@@ -21,14 +25,22 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_ACCESSTOKEN }}
           logout: true
+
       - name: Build and push Docker images
+        id: docker_build
         uses: docker/build-push-action@v6.9.0
         with:
           context: .
           file: ./docker/Dockerfile
           build-args: |
-            BUILD_VERSION=${{ steps.date.outputs.date }}-{{ github.run_id }}
+            BUILD_VERSION=${{ steps.date.outputs.date }}-${{ github.run_id }}
           push: true
           tags: |
             "dotfinity/proxysql-admin-ui:${{ steps.date.outputs.date }}"
             "dotfinity/proxysql-admin-ui:latest"
+
+      - name: Create and Push Tag
+        if: github.ref == 'refs/heads/main' && steps.docker_build.outcome == 'success'
+        run: |
+          git tag ${{ steps.date.outputs.date }}-${{ github.run_id }}
+          git push origin ${{ steps.date.outputs.date }}-${{ github.run_id }}

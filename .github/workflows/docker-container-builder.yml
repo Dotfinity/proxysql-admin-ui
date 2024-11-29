@@ -3,7 +3,7 @@ name: Docker Image CI
 on:
   workflow_dispatch:
   push:
-    branches: ["main"]
+    branches: ["dev"]
     paths:
       - "**/ProxysqlAdminUi.*/**"
 jobs:
@@ -37,10 +37,10 @@ jobs:
           # Path to the Dockerfile
           file: ./docker/Dockerfile # optional
           build-args: |
-            BUILD_VERSION=${{ steps.date.outputs.date }}-{{ github.run_id }}
+            BUILD_VERSION=${{ steps.date.outputs.date }}-${{ github.run_id }}
           # Push is a shorthand for --output=type=registry
           push: true # optional, default is false
           # Generate SBOM attestation for the build (shorthand for --attest=type=sbom)
           tags: |
-            "proget.dotfinity.eu/dotfinity-custom/proxysql-admin-ui:${{ steps.date.outputs.date }}"
+            "proget.dotfinity.eu/dotfinity-custom/proxysql-admin-ui:${{ steps.date.outputs.date }}-${{ github.run_id }}"
             "proget.dotfinity.eu/dotfinity-custom/proxysql-admin-ui:latest"
