@@ -12,6 +12,9 @@
 		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0-alpine</ContainerBaseImage>
 		<InformationalVersion>x</InformationalVersion>
 		<VersionSuffix>x</VersionSuffix>
+		<Version>0.1.0.0</Version>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+ 
 	</PropertyGroup>
 
 	<ItemGroup>

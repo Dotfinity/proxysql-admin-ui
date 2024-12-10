@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 @inject NavigationManager NavigationManager
-
+@inject AppVersion AppVersion
 @if (HttpContext is null)
 {
     <p>Loading...</p>
@@ -10,7 +10,9 @@ else
 {
     @Body
 }
-
+<footer>
+    @AppVersion.Version
+</footer>
 @code {
     [CascadingParameter]
     private HttpContext? HttpContext { get; set; }
