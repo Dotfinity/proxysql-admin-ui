@@ -1,5 +1,6 @@
 ﻿@page "/mysql/rules"
 
+@using ProxysqlAdminUi.Web.Extensions
 @using ProxysqlAdminUi.Web.Repositories
 @using ProxysqlAdminUi.Web.ViewModel
 
@@ -45,7 +46,7 @@
                     @if (rule.CacheTtl != null)
                     {
                         <RadzenRow>
-                            <RadzenLabel>Cache TTL (ms):</RadzenLabel> <RadzenText>@(rule.CacheTtl)</RadzenText>
+                            <RadzenLabel>Cache TTL:</RadzenLabel> <RadzenText>@(FormatHelper.FormatMiliseconds(rule.CacheTtl.GetValueOrDefault(0)))</RadzenText>
                         </RadzenRow>
                     }
 
@@ -122,10 +123,10 @@
                 </RadzenCard>
                 <RadzenCard Variant="Variant.Text">
                     <RadzenRow>
-                        <RadzenLabel>Processed Queries:</RadzenLabel> <RadzenText>@(rule.CountStar)</RadzenText>
+                        <RadzenLabel>Processed Queries:</RadzenLabel> <RadzenText>@(FormatHelper.FormatLargeNumber(rule.CountStar))</RadzenText>
                     </RadzenRow>
                     <RadzenRow>
-                        <RadzenLabel>Cached Queries:</RadzenLabel> <RadzenText>@(rule.Hits)</RadzenText>
+                        <RadzenLabel>Cached Queries:</RadzenLabel> <RadzenText>@(FormatHelper.FormatLargeNumber(rule.Hits))</RadzenText>
                     </RadzenRow>
                     <RadzenChart Style="width: 100%; max-width: 600px;">
                         <RadzenPieSeries Data=@GetChartEntry(rule.RuleId) ValueProperty="Count" CategoryProperty="Type">

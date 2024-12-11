@@ -34,8 +34,19 @@ public static class FormatHelper
 
         return number.ToString();
     }
-    
-    
+
+
+    public static string FormatMiliseconds(long miliseconds)
+    {
+        var ts = TimeSpan.FromMilliseconds(miliseconds);
+
+        return ts.Days > 0 ? $"{ts.Days}d {ts:hh\\:mm\\:ss\\.fff}" :
+            ts.Hours > 0 ? $"{ts:hh\\:mm\\:ss\\.fff}" :
+            ts.Minutes > 0 ? $"{ts:mm\\:ss\\.fff}" :
+            $"{ts:ss\\.fff}";
+    }
+
+
     public static string FormatMicroseconds(long microseconds)
     {
         var ts = TimeSpan.FromMicroseconds(microseconds);
