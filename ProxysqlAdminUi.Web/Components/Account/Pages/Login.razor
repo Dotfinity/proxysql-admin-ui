@@ -8,6 +8,7 @@
 @inject SignInManager<ProxysqlAdminUiWebUser> SignInManager
 @inject ILogger<Login> Logger
 @inject IdentityRedirectManager RedirectManager
+@inject AppVersion AppVersion
 
 <PageTitle>Log in</PageTitle>
 <HeadContent>
@@ -44,6 +45,9 @@
 
             </EditForm>
         </section>
+        <footer class="">
+            <a href="@("https://github.com/Dotfinity/proxysql-admin-ui/releases/" + AppVersion.Version)">@AppVersion.Version</a>
+        </footer>
     </div> 
 </div>
 

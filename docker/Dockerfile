@@ -3,10 +3,11 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 ARG BUILD_CONFIGURATION=Release
 ARG TARGETARCH=amd64
 ARG RUNTIME=linux-musl-x64
-ARG BUILD_VERSION=1.1.1.1
-ARG BUILD_SUFFIX=RC
-ENV BUILD_VERSION=$BUILD_VERSION
-ENV BUILD_SUFFIX=$BUILD_SUFFIX
+ARG BUILD_VERSION=0.0.0.0
+ARG BUILD_SUFFIX=0
+ENV BUILD_VERSION=$BUILD_VERSION \ 
+  BUILD_SUFFIX=$BUILD_SUFFIX
+
 
 WORKDIR /src
 
@@ -14,9 +15,6 @@ COPY ["ProxysqlAdminUi.Web/ProxysqlAdminUi.Web.csproj", "ProxysqlAdminUi.Web/"]
 RUN dotnet restore --runtime $RUNTIME "./ProxysqlAdminUi.Web/ProxysqlAdminUi.Web.csproj"
 COPY . .
 WORKDIR "/src/ProxysqlAdminUi.Web"
-
-RUN sed -i 's|<InformationalVersion>.*</InformationalVersion>|<InformationalVersion>'${BUILD_VERSION}'</InformationalVersion>|g' ProxysqlAdminUi.Web.csproj
-RUN sed -i 's|<VersionSuffix>.*</VersionSuffix>|<VersionSuffix>'${BUILD_SUFFIX}'</VersionSuffix>|g' ProxysqlAdminUi.Web.csproj
 
 RUN dotnet build "./ProxysqlAdminUi.Web.csproj" -c $BUILD_CONFIGURATION --runtime $RUNTIME -o /app/build
 
