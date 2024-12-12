@@ -7,7 +7,10 @@
 		<UserSecretsId>aspnet-BlazorApp1-07983579-be1b-4ab0-ad40-8d9b0eb6a245</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<DockerfileContext>.</DockerfileContext>
-
+		<RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
+		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
+		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0-alpine</ContainerBaseImage>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -19,7 +22,6 @@
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
 		<PackageReference Include="MySql.EntityFrameworkCore " Version="*" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
-		
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -30,6 +32,9 @@
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="db\" />
+	</ItemGroup>
+	<ItemGroup>
+		<ContainerPort Include="8081" />
 	</ItemGroup>
 
 </Project>

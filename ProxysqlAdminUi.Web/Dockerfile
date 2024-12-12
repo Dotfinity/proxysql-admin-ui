@@ -1,31 +1,34 @@
 # This stage is used to build the service project
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+
 ARG BUILD_CONFIGURATION=Release
 ARG TARGETARCH=amd64
 ARG RUNTIME=linux-musl-x64
-ARG BUILD_VERSION=0.0.0.0
-ARG BUILD_SUFFIX=0
-ENV BUILD_VERSION=$BUILD_VERSION \ 
-  BUILD_SUFFIX=$BUILD_SUFFIX
+ARG BUILD_VERSION="0.0.0.0"
+ARG BUILD_SUFFIX="LOCAL"
 
+ENV BUILD_VERSION=$BUILD_VERSION \ 
+    BUILD_SUFFIX=$BUILD_SUFFIX
+
+EXPOSE 8000
+EXPOSE 7040
 
 WORKDIR /src
 
-COPY ["ProxysqlAdminUi.Web/ProxysqlAdminUi.Web.csproj", "ProxysqlAdminUi.Web/"]
-RUN dotnet restore --runtime $RUNTIME "./ProxysqlAdminUi.Web/ProxysqlAdminUi.Web.csproj"
-COPY . .
-WORKDIR "/src/ProxysqlAdminUi.Web"
+# Copy project file and restore as distinct layers
+COPY --link ./*.csproj .
+RUN dotnet restore -a $TARGETARCH
 
-RUN dotnet build "./ProxysqlAdminUi.Web.csproj" -c $BUILD_CONFIGURATION --runtime $RUNTIME -o /app/build
-
-RUN dotnet publish "./ProxysqlAdminUi.Web.csproj" --runtime $RUNTIME --no-restore -c $BUILD_CONFIGURATION --self-contained -o /app/publish /p:UseAppHost=true
+# Copy source code and publish app
+COPY --link ./ .
+#RUN dotnet build -v d /p:Version=${BUILD_VERSION} /p:InformationalVersion=${BUILD_VERSION} /p:VersionSuffix=${BUILD_SUFFIX} -a $TARGETARCH  --no-restore
+RUN dotnet publish -v d -a $TARGETARCH  --no-restore -o /app
 
 
 # Enable globalization and time zones:
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
-# final stage/image
+# Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
-EXPOSE 8000
 
 ENV \
   DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
@@ -35,7 +38,7 @@ RUN apk add --no-cache \
   icu-data-full \
   icu-libs
 
-
 WORKDIR /app
-COPY --from=build /app/publish .
+COPY --link --from=build /app .
+USER $APP_UID
 ENTRYPOINT ["./ProxysqlAdminUi.Web"]

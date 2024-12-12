@@ -33,10 +33,11 @@ jobs:
           context: .
           file: ./docker/Dockerfile
           build-args: |
-            BUILD_VERSION=${{ steps.date.outputs.date }}-${{ github.run_id }}
+            BUILD_VERSION=${{ steps.date.outputs.date }}
+            BUILD_SUFFIX=${{ github.run_id }}
           push: true
           tags: |
-            "dotfinity/proxysql-admin-ui:${{ steps.date.outputs.date }}"
+            "dotfinity/proxysql-admin-ui:${{ steps.date.outputs.date }}-${{ github.run_id }}"
             "dotfinity/proxysql-admin-ui:latest"
 
       - name: Create and Push Tag

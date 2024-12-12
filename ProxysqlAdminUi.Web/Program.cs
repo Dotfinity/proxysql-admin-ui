@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ProxysqlAdminUi.Web;
 using ProxysqlAdminUi.Web.Components;
 using ProxysqlAdminUi.Web.Data;
 using ProxysqlAdminUi.Web.Components.Account;
@@ -69,6 +70,9 @@ builder.Services.AddSingleton<IEmailSender<ProxysqlAdminUiWebUser>, IdentityNoOp
 builder.Services.AddOutputCache();
 
 builder.Services.AddScoped<DefaultUserSeedService>();
+
+builder.Services.AddSingleton<AppVersion>();
+
 #endregion
 
 #region App
