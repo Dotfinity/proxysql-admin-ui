@@ -76,11 +76,11 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
 
     public async Task<MysqlUserModel> AddMySqlUser(MysqlUserModel user)
     {
-        var sql = @"INSERT INTO mysql_users 
+        var sql = @"INSERT INTO mysql_users
             (username, password, active, use_ssl, default_hostgroup, default_schema,
              schema_locked, transaction_persistent, fast_forward, backend, frontend,
              max_connections, attributes, comment)
-            VALUES 
+            VALUES
             ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13})";
 
         await dbContext.Database.ExecuteSqlRawAsync(sql,
@@ -89,12 +89,14 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
             user.TransactionPersistent, user.FastForward, user.Backend,
             user.Frontend, user.MaxConnections, user.Attributes, user.Comment);
 
+        await LoadUsersToRuntime();
+        await SaveUsersToDisk();
         return user;
     }
 
     public async Task<int> UpdateMySqlUser(MysqlUserModel user)
     {
-        var sql = @"UPDATE mysql_users 
+        var sql = @"UPDATE mysql_users
             SET password = {1}, active = {2}, use_ssl = {3},
                 default_hostgroup = {4}, default_schema = {5},
                 schema_locked = {6}, transaction_persistent = {7},
@@ -102,17 +104,35 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
                 max_connections = {10}, attributes = {11}, comment = {12}
             WHERE username = {0} AND backend = {13}";
 
-        return await dbContext.Database.ExecuteSqlRawAsync(sql,
+        var result = await dbContext.Database.ExecuteSqlRawAsync(sql,
             user.Username, user.Password, user.Active, user.UseSsl,
             user.DefaultHostgroup, user.DefaultSchema, user.SchemaLocked,
             user.TransactionPersistent, user.FastForward, user.Frontend,
             user.MaxConnections, user.Attributes, user.Comment, user.Backend);
+
+        await LoadUsersToRuntime();
+        await SaveUsersToDisk();
+        return result;
     }
 
     public async Task<int> DeleteMySqlUser(string username)
     {
-        return await dbContext.Database.ExecuteSqlRawAsync(
+        var result = await dbContext.Database.ExecuteSqlRawAsync(
             "DELETE FROM mysql_users WHERE username = {0}", username);
+
+        await LoadUsersToRuntime();
+        await SaveUsersToDisk();
+        return result;
+    }
+
+    public async Task LoadUsersToRuntime()
+    {
+        await dbContext.Database.ExecuteSqlRawAsync("LOAD MYSQL USERS TO RUNTIME;");
+    }
+
+    public async Task SaveUsersToDisk()
+    {
+        await dbContext.Database.ExecuteSqlRawAsync("SAVE MYSQL USERS TO DISK;");
     }
 
     // MySQL Query Rules

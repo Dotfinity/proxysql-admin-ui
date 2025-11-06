@@ -6,17 +6,40 @@
 @attribute [Authorize]
 
 @inject ProxySqlRepository ProxySqlRepository
+@inject DialogService DialogService
 
-<h3>Users</h3>
+<RadzenRow AlignItems="AlignItems.Normal" Gap="">
+    <RadzenColumn Order="1" Size="3">
+        <RadzenText Text="MySQL Users" TextStyle="TextStyle.DisplayH3" TextAlign="TextAlign.Left" />
+    </RadzenColumn>
+    <RadzenColumn Order="10" Size="3" Offset="6">
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1rem">
+            <RadzenButton Icon="refresh" ButtonStyle="ButtonStyle.Light" Text="Refresh" Click="RefreshUsers" />
+            <RadzenButton Icon="add" ButtonStyle="ButtonStyle.Primary" Text="Add User" Click="CreateNewUser" />
+        </RadzenStack>
+    </RadzenColumn>
+</RadzenRow>
 
 <RadzenDataGrid TItem="MysqlUserModel" Data="@MySqlUsersList" AllowPaging="true" PageSize="10">
     <Columns>
         <RadzenDataGridColumn Property="@nameof(MysqlUserModel.Username)" Title="Username" />
         <RadzenDataGridColumn Property="@nameof(MysqlUserModel.DefaultHostgroup)" Title="Default Hostgroup" />
-        <RadzenDataGridColumn>
-            <Template>
-                <RadzenButton Click="@ShowEditModal" Text="Edit" Icon="Edit"></RadzenButton>
-                <RadzenButton Click="@ShowDeleteModal" Text="Delete" Icon="Delete"></RadzenButton>
+        <RadzenDataGridColumn Property="@nameof(MysqlUserModel.DefaultSchema)" Title="Default Schema" />
+        <RadzenDataGridColumn Title="Active">
+            <Template Context="user">
+                @(user.Active == 1 ? "Yes" : "No")
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Use SSL">
+            <Template Context="user">
+                @(user.UseSsl == 1 ? "Yes" : "No")
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="@nameof(MysqlUserModel.MaxConnections)" Title="Max Connections" />
+        <RadzenDataGridColumn Title="Actions">
+            <Template Context="user">
+                <RadzenButton Click="@(() => ShowEditModal(user.Username, user.Backend))" Text="Edit" Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small"></RadzenButton>
+                <RadzenButton Click="@(() => ShowDeleteModal(user.Username, user.Backend))" Text="Delete" Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small"></RadzenButton>
             </Template>
         </RadzenDataGridColumn>
     </Columns>
@@ -38,13 +61,55 @@
         return await ProxySqlRepository.GetMySqlUsers();
     }
 
-    private void ShowEditModal()
+    private async Task RefreshUsers()
     {
-        // Implement edit functionality using the selected MySQL user.
+        MySqlUsersList = (await GetMySqlUsersAsync()).ToList();
+        StateHasChanged();
     }
 
-    private void ShowDeleteModal()
+    private async Task ShowEditModal(string username, int backend)
     {
-        // Implement delete functionality using the selected MySQL user.
+        await DialogService.OpenAsync<EditMysqlUserDialog>($"Edit User: {username}",
+            parameters: new Dictionary<string, object>()
+            {
+                { "Username", username },
+                { "Backend", backend }
+            },
+            options: new DialogOptions() { CloseDialogOnEsc = true });
+
+        // Refresh the users list after edit
+        MySqlUsersList = (await GetMySqlUsersAsync()).ToList();
+        StateHasChanged();
+    }
+
+    private async Task ShowDeleteModal(string username, int backend)
+    {
+        await DialogService.OpenAsync<DeleteMysqlUserDialog>($"Delete User: {username}",
+            parameters: new Dictionary<string, object>()
+            {
+                { "Username", username },
+                { "Backend", backend }
+            },
+            options: new DialogOptions()
+            {
+                CloseDialogOnEsc = true
+            });
+
+        // Refresh the users list after delete
+        MySqlUsersList = (await GetMySqlUsersAsync()).ToList();
+        StateHasChanged();
+    }
+
+    private async Task CreateNewUser()
+    {
+        await DialogService.OpenAsync<AddMysqlUserDialog>("Add MySQL User",
+            options: new DialogOptions()
+            {
+                CloseDialogOnEsc = true,
+            });
+
+        // Refresh the users list after add
+        MySqlUsersList = (await GetMySqlUsersAsync()).ToList();
+        StateHasChanged();
     }
 }
