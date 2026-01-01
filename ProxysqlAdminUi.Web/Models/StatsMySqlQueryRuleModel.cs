@@ -12,7 +12,7 @@ public class StatsMySqlQueryRuleModel
 
     [Column("hits")]
     [Required]
-    public int Hits { get; set; }
+    public long Hits { get; set; }
 
     public override bool Equals(object obj)
     {
