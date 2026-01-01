@@ -1,0 +1,116 @@
+@using ProxysqlAdminUi.Web.Models
+@using ProxysqlAdminUi.Web.Repositories
+
+@attribute [Authorize]
+
+@inject ProxySqlRepository ProxySqlRepository
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+
+<RadzenContent Container="main">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <RadzenTemplateForm TItem="MysqlUserModel" Data=@mysqlUser Submit=@OnConfirmDelete>
+                <RadzenCard>
+                    <div class="row">
+                        <div class="col">
+                            <h3 class="h5">Confirm Delete</h3>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <p>Are you sure you want to delete MySQL user <strong>@Username</strong>?</p>
+                                    @if (mysqlUser != null)
+                                    {
+                                        <div class="alert alert-info">
+                                            <strong>User Details:</strong><br />
+                                            Username: @mysqlUser.Username<br />
+                                            Default Hostgroup: @mysqlUser.DefaultHostgroup<br />
+                                            Default Schema: @mysqlUser.DefaultSchema<br />
+                                            Active: @(mysqlUser.Active == 1 ? "Yes" : "No")<br />
+                                            Use SSL: @(mysqlUser.UseSsl == 1 ? "Yes" : "No")<br />
+                                            Max Connections: @mysqlUser.MaxConnections<br />
+                                            Backend: @mysqlUser.Backend<br />
+                                            Frontend: @mysqlUser.Frontend
+                                        </div>
+                                        <div class="alert alert-warning">
+                                            <strong>Warning:</strong> This will delete all entries for this username in the mysql_users table.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col d-flex justify-content-end gap-2">
+                                    <RadzenButton ButtonType="ButtonType.Submit"
+                                                Icon="delete"
+                                                Text="Delete"
+                                                ButtonStyle="ButtonStyle.Danger" />
+                                    <RadzenButton ButtonType="ButtonType.Button"
+                                                Icon="cancel"
+                                                Text="Cancel"
+                                                ButtonStyle="ButtonStyle.Light"
+                                                Click=@OnCancel />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </RadzenCard>
+            </RadzenTemplateForm>
+        </div>
+    </div>
+</RadzenContent>
+
+@code {
+    [Parameter]
+    public string Username { get; set; }
+
+    [Parameter]
+    public int Backend { get; set; }
+
+    private MysqlUserModel mysqlUser;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var users = await ProxySqlRepository.GetMySqlUsers();
+            mysqlUser = users.FirstOrDefault(u => u.Username == Username && u.Backend == Backend);
+
+            if (mysqlUser == null)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error", "MySQL user not found");
+                DialogService.Close();
+            }
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Failed to load MySQL user details.\r\n" + ex.Message);
+            DialogService.Close();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnConfirmDelete()
+    {
+        try
+        {
+            await ProxySqlRepository.DeleteMySqlUser(Username);
+
+            NotificationService.Notify(NotificationSeverity.Success, "Success",
+                $"MySQL user '{Username}' has been deleted.");
+            DialogService.Close();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error",
+                "Failed to delete MySQL user.\r\n" + ex.Message);
+        }
+    }
+
+    private void OnCancel()
+    {
+        DialogService.Close();
+    }
+}

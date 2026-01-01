@@ -1,0 +1,217 @@
+@using ProxysqlAdminUi.Web.Models
+@using ProxysqlAdminUi.Web.Repositories
+
+@attribute [Authorize]
+
+@inject ProxySqlRepository ProxySqlRepository
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+
+<RadzenContent Container="main">
+    <RadzenStack Gap="1rem">
+        @if (_mysqlUser != null)
+        {
+            <RadzenTemplateForm TItem="MysqlUserModel" Data=@_mysqlUser Submit=@OnSubmit>
+                <RadzenCard>
+                    <RadzenStack Gap="1rem">
+                        <!-- Basic Properties -->
+                        <RadzenRow>
+                            <RadzenColumn Size="12">
+                                <RadzenStack>
+                                    <RadzenLabel Text="Username" />
+                                    <RadzenTextBox @bind-Value=@_mysqlUser.Username Name="@nameof(MysqlUserModel.Username)" />
+                                    <RadzenRequiredValidator Component="@nameof(MysqlUserModel.Username)" Text="Username is required" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow>
+                            <RadzenColumn Size="12">
+                                <RadzenStack>
+                                    <RadzenLabel Text="Password" />
+                                    <RadzenPassword @bind-Value=@_mysqlUser.Password Name="@nameof(MysqlUserModel.Password)" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow>
+                            <RadzenColumn Size="6">
+                                <RadzenStack>
+                                    <RadzenLabel Text="Default Hostgroup" />
+                                    <RadzenNumeric @bind-Value=@_mysqlUser.DefaultHostgroup Name="@nameof(MysqlUserModel.DefaultHostgroup)" Min="0" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                            <RadzenColumn Size="6">
+                                <RadzenStack>
+                                    <RadzenLabel Text="Max Connections" />
+                                    <RadzenNumeric @bind-Value=@_mysqlUser.MaxConnections Name="@nameof(MysqlUserModel.MaxConnections)" Min="0" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow>
+                            <RadzenColumn Size="12">
+                                <RadzenStack>
+                                    <RadzenLabel Text="Default Schema" />
+                                    <RadzenTextBox @bind-Value=@_mysqlUser.DefaultSchema Name="@nameof(MysqlUserModel.DefaultSchema)" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow>
+                            <RadzenColumn Size="4">
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                    <RadzenCheckBox @bind-Value=@_activeChecked Name="Active" />
+                                    <RadzenLabel Text="Active" Component="Active" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                            <RadzenColumn Size="4">
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                    <RadzenCheckBox @bind-Value=@_useSslChecked Name="UseSsl" />
+                                    <RadzenLabel Text="Use SSL" Component="UseSsl" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                            <RadzenColumn Size="4">
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                    <RadzenCheckBox @bind-Value=@_schemaLockedChecked Name="SchemaLocked" />
+                                    <RadzenLabel Text="Schema Locked" Component="SchemaLocked" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <!-- Expandable Advanced Section -->
+                        <RadzenPanel Text="Advanced Settings" AllowCollapse="true" Collapsed="true">
+                            <RadzenStack Gap="1rem">
+                                <RadzenRow>
+                                    <RadzenColumn Size="4">
+                                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                            <RadzenCheckBox @bind-Value=@_transactionPersistentChecked Name="TransactionPersistent" />
+                                            <RadzenLabel Text="Transaction Persistent" Component="TransactionPersistent" />
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="4">
+                                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                            <RadzenCheckBox @bind-Value=@_fastForwardChecked Name="FastForward" />
+                                            <RadzenLabel Text="Fast Forward" Component="FastForward" />
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="4">
+                                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                            <RadzenCheckBox @bind-Value=@_frontendChecked Name="Frontend" />
+                                            <RadzenLabel Text="Frontend" Component="Frontend" />
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                </RadzenRow>
+
+                                <RadzenRow>
+                                    <RadzenColumn Size="6">
+                                        <RadzenStack>
+                                            <RadzenLabel Text="Backend" />
+                                            <RadzenNumeric @bind-Value=@_mysqlUser.Backend Name="@nameof(MysqlUserModel.Backend)" Min="0" Max="1" />
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                </RadzenRow>
+
+                                <RadzenRow>
+                                    <RadzenColumn Size="12">
+                                        <RadzenStack>
+                                            <RadzenLabel Text="Attributes" />
+                                            <RadzenTextBox @bind-Value=@_mysqlUser.Attributes Name="@nameof(MysqlUserModel.Attributes)" />
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                </RadzenRow>
+
+                                <RadzenRow>
+                                    <RadzenColumn Size="12">
+                                        <RadzenStack>
+                                            <RadzenLabel Text="Comment" />
+                                            <RadzenTextArea @bind-Value=@_mysqlUser.Comment Name="@nameof(MysqlUserModel.Comment)" />
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenPanel>
+
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1rem">
+                            <RadzenButton ButtonType="ButtonType.Submit" Text="Save" ButtonStyle="ButtonStyle.Primary" />
+                            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click=@OnCancel />
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenTemplateForm>
+        }
+    </RadzenStack>
+</RadzenContent>
+
+@code {
+    private MysqlUserModel _mysqlUser = new()
+    {
+        Active = 1,
+        UseSsl = 0,
+        DefaultHostgroup = 0,
+        SchemaLocked = 0,
+        TransactionPersistent = 1,
+        FastForward = 0,
+        Backend = 1,
+        Frontend = 1,
+        MaxConnections = 10000,
+        Attributes = string.Empty,
+        Comment = string.Empty
+    };
+
+    // Checkbox bindings for boolean-like integer fields
+    private bool _activeChecked
+    {
+        get => _mysqlUser.Active == 1;
+        set => _mysqlUser.Active = value ? 1 : 0;
+    }
+
+    private bool _useSslChecked
+    {
+        get => _mysqlUser.UseSsl == 1;
+        set => _mysqlUser.UseSsl = value ? 1 : 0;
+    }
+
+    private bool _schemaLockedChecked
+    {
+        get => _mysqlUser.SchemaLocked == 1;
+        set => _mysqlUser.SchemaLocked = value ? 1 : 0;
+    }
+
+    private bool _transactionPersistentChecked
+    {
+        get => _mysqlUser.TransactionPersistent == 1;
+        set => _mysqlUser.TransactionPersistent = value ? 1 : 0;
+    }
+
+    private bool _fastForwardChecked
+    {
+        get => _mysqlUser.FastForward == 1;
+        set => _mysqlUser.FastForward = value ? 1 : 0;
+    }
+
+    private bool _frontendChecked
+    {
+        get => _mysqlUser.Frontend == 1;
+        set => _mysqlUser.Frontend = value ? 1 : 0;
+    }
+
+    private async Task OnSubmit()
+    {
+        try
+        {
+            await ProxySqlRepository.AddMySqlUser(_mysqlUser);
+            NotificationService.Notify(NotificationSeverity.Success, "Success", "MySQL user added successfully");
+            DialogService.Close(true);
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Failed to add MySQL user: " + ex.Message);
+        }
+    }
+
+    private void OnCancel()
+    {
+        DialogService.Close(false);
+    }
+}
