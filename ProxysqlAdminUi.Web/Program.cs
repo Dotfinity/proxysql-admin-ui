@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 #region Services
 
 builder.Configuration.AddJsonFile("appsettings.json", false)
-    .AddJsonFile($"appsettings.{Environments.Development}.json", true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true)
     .AddEnvironmentVariables("PAI_")
     .AddEnvironmentVariables();
 
@@ -80,9 +80,10 @@ builder.Services.AddSingleton<AppVersion>();
 var app = builder.Build();
 
 
-var scope = app.Services.CreateAsyncScope();
-
-await scope.ServiceProvider.GetService<DefaultUserSeedService>().SeedDefaultUsersAsync();
+await using (var scope = app.Services.CreateAsyncScope())
+{
+  await scope.ServiceProvider.GetRequiredService<DefaultUserSeedService>().SeedDefaultUsersAsync();
+}
 
 if (!app.Environment.IsDevelopment())
 {
@@ -96,8 +97,12 @@ app.UseAntiforgery();
 
 app.UseOutputCache();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+  // Only the Identity endpoints exist; don't expose their documentation publicly in Production.
+  app.UseSwagger();
+  app.UseSwaggerUI();
+}
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
@@ -106,3 +111,9 @@ app.MapAdditionalIdentityEndpoints();
 
 app.Run();
 #endregion
+
+/// <summary>
+/// Exposes the implicitly generated top-level-statements entry point class so that
+/// integration tests can boot the application with <c>WebApplicationFactory&lt;Program&gt;</c>.
+/// </summary>
+public partial class Program;

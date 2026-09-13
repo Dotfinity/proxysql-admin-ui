@@ -1,31 +1,36 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ProxysqlAdminUi.Tests</RootNamespace>
   </PropertyGroup>
 
-
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Testing" Version="8.1.0" />
-    <PackageReference Include="coverlet.collector" Version="6.0.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
-    <PackageReference Include="xunit" Version="2.9.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
+    <!--
+      coverlet.collector is a VSTest data collector and is inert under Microsoft.Testing.Platform,
+      which global.json pins as the runner ("test": { "runner": "Microsoft.Testing.Platform" }).
+      This package is the MTP equivalent. Collect by passing the "coverage" switch to the test
+      executable, after the argument separator that dotnet test uses to forward MTP options.
+    -->
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+    <PackageReference Include="xunit.v3" Version="4.0.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ProxysqlAdminUi.AppHost\ProxysqlAdminUi.AppHost.csproj" />
+    <ProjectReference Include="..\ProxysqlAdminUi.Web\ProxysqlAdminUi.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="System.Net" />
-    <Using Include="Microsoft.Extensions.DependencyInjection" />
-    <Using Include="Aspire.Hosting.ApplicationModel" />
-    <Using Include="Aspire.Hosting.Testing" />
     <Using Include="Xunit" />
   </ItemGroup>
 

@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProxysqlAdminUi.Web.Contexts;
 
-
 #nullable disable
 
 namespace ProxysqlAdminUi.Web.Migrations.AuthMigrations
@@ -16,7 +15,7 @@ namespace ProxysqlAdminUi.Web.Migrations.AuthMigrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -194,7 +193,7 @@ namespace ProxysqlAdminUi.Web.Migrations.AuthMigrations
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Username")
+                    b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 

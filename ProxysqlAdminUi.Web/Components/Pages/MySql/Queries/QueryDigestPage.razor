@@ -49,22 +49,28 @@
         <Columns>
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Hostgroup)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.Hostgroup))"
                                   HeaderTooltip="Target server hostgroup" Title="Hostgroup" Filterable="true" Sortable="true" Width="80px" />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Schemaname)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.Schemaname))"
                                   HeaderTooltip="Database schema name" Title="Schema" Filterable="true" Sortable="true"  />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Username)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.Username))"
                                   HeaderTooltip="User executing the queries" Title="Username" Filterable="true" Sortable="true"  />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.ClientAddress)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.ClientAddress))"
                                   HeaderTooltip="Client IP address" Title="Client Address" Filterable="true" Sortable="true" />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.Digest)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.Digest))"
                                   HeaderTooltip="Query digest hash" Title="Digest" Filterable="true" Sortable="false" Width="180px"
                                   MinWidth="100px" />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.DigestText)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.DigestText))"
                                   Title="Query" Sortable="false" Width="250px" MinWidth="300px">
                 <Template Context="digest">
                     <RadzenButton Size="ButtonSize.Small" Text="@ExtractDigestText(digest)"
@@ -73,14 +79,17 @@
             </RadzenDataGridColumn>
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.CountStar)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.CountStar))"
                                   HeaderTooltip="Total number of times this query pattern was executed" Title="Query Count" FormatString="{0:### ### ### ### ##0}" Filterable="true"
                                   Sortable="true" />
             
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.CacheHits)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.CacheHits))"
                                   HeaderTooltip="Total number of times this query pattern was executed" Title="Cache Hits" FormatString="{0:### ### ### ### ##0}"  Filterable="true"
                                   Sortable="true" />
             
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.FirstSeen)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.FirstSeen))"
                                   HeaderTooltip="First time this query pattern was seen" Title="First Seen" Filterable="true" Sortable="true"
                                   >
                 <Template Context="digest">
@@ -89,6 +98,7 @@
             </RadzenDataGridColumn>
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.LastSeen)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.LastSeen))"
                                   HeaderTooltip="Last time this query pattern was seen" Title="Last Seen" Filterable="true" Sortable="true"
                                   >
                 <Template Context="digest">
@@ -97,6 +107,7 @@
             </RadzenDataGridColumn>
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumTime)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.SumTime))"
                                   HeaderTooltip="Total execution time in microseconds" Title="Total Time" Filterable="true"
                                   Sortable="true">
                 <Template Context="digest">
@@ -105,23 +116,28 @@
             </RadzenDataGridColumn>
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.MinTime)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.MinTime))"
                                   HeaderTooltip="Minimum query execution time in microseconds" Title="Min Time (μs)" FormatString="{0:### ### ### ### ##0}" Filterable="true"
                                   Sortable="true" />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.MaxTime)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.MaxTime))"
                                   HeaderTooltip="Maximum query execution time in microseconds" Title="Max Time (μs)" FormatString="{0:### ### ### ### ##0}" Filterable="true"
                                   Sortable="true" />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumRowsAffected)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.SumRowsAffected))"
                                   HeaderTooltip="Total number of rows affected by this query pattern" Title="Rows Affected"  FormatString="{0:### ### ### ### ##0}" Filterable="true"
                                   Sortable="true" />
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.SumRowsSent)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.SumRowsSent))"
                                   HeaderTooltip="Total number of rows returned by this query pattern" Title="Rows Sent"  FormatString="{0:### ### ### ### ##0}" Filterable="true"
                                   Sortable="true" />
 
 
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.RuleId)"
+                                  Visible="@IsColumnVisible(nameof(QueryDigestViewModel.RuleId))"
                                   HeaderTooltip="Associated routing rule ID if one exists" Title="Rule ID" Filterable="true" Sortable="true"
                                   />
 
@@ -170,6 +186,15 @@
         nameof(QueryDigestViewModel.SumTime),
         nameof(QueryDigestViewModel.SumRowsSent)
     ];
+
+    /// <summary>
+    /// Property names of the currently visible pickable columns. Bound to each column's
+    /// Visible parameter so visibility is driven by component state instead of assigning
+    /// that parameter from outside the component (BL0005).
+    /// </summary>
+    private List<string> _visibleColumns = [.._defaultColumnsVisible];
+
+    private bool IsColumnVisible(string property) => _visibleColumns.Contains(property);
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -244,6 +269,8 @@
         var visibleColumns = changedEventArgs.Columns 
             .Select(c => c.Property)
             .ToList();
+
+        _visibleColumns = visibleColumns;
         
         var settings = JsonSerializer.Serialize(visibleColumns);
         await JSRuntime.InvokeVoidAsync("localStorage.setItem", COLUMN_SETTINGS_KEY, settings);
@@ -262,13 +289,7 @@
             visibleColumns = JsonSerializer.Deserialize<List<string>>(settings);
         }
         
-        foreach (var column in _grid.ColumnsCollection)
-        {
-            // if the proprty "Visible" is set in the "html" part,
-            // then this has no effect on the column visibility.
-            var isContained = visibleColumns.Contains(column.Property);
-            column.Visible = isContained;
-        }
+        _visibleColumns = visibleColumns ?? [.._defaultColumnsVisible];
 
         _gridVisible = true;
         StateHasChanged();

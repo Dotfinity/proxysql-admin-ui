@@ -33,18 +33,19 @@ A modern web interface for managing ProxySQL, built with Blazor and .NET Core.
 
 ## Tech Stack
 
-- ASP.NET Core (.NET 8)  
+- ASP.NET Core (.NET 10 LTS)
 - Blazor Server
-- Entity Framework Core
-- [Radzen Blazor Components](https://blazor.radzen.com/)
+- Entity Framework Core 10 with the Oracle `MySql.EntityFrameworkCore` provider
+- [Radzen Blazor Components](https://blazor.radzen.com/) 11
 - SQLite (for auth data)
+- xunit.v3 smoke tests (`dotnet test`)
 
 ## Getting Started
 
 ### Prerequisites
 
-- .NET 8 SDK
-- Running ProxySQL instance
+- .NET 10 SDK
+- Running ProxySQL instance (the app talks to the **admin** interface, port 6032 by default in ProxySQL)
 
 ### Configuration
 
@@ -54,7 +55,7 @@ A modern web interface for managing ProxySQL, built with Blazor and .NET Core.
 
 ```json
 "ConnectionStrings": {
-    "ProxySqlContext": "Server=0.0.0.0;Port=6033;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;"
+    "ProxySqlContext": "Server=0.0.0.0;Port=6032;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;"
   },
   "DefaultUsers": [
     {
@@ -70,6 +71,12 @@ A modern web interface for managing ProxySQL, built with Blazor and .NET Core.
 dotnet watch --project ProxysqlAdminUi.Web/ProxysqlAdminUi.Web.csproj
 ```
 
+3. Run the tests:
+
+```bash
+dotnet test
+```
+
 #### Docker Configuration
 
 Set the environment variables in the `docker-compose.yml` file:
@@ -79,7 +86,7 @@ environment:
   ASPNETCORE_ENVIRONMENT: Production
   ASPNETCORE_URLS: 'http://+:8000'
   # Connection string for the ProxySQL server
-  PAI_ConnectionStrings__ProxySqlContext: 'Server=xxxxxx;Port=6033;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;'
+  PAI_ConnectionStrings__ProxySqlContext: 'Server=xxxxxx;Port=6032;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;'
 ```
 
 or if you're running the app and the proxysql server in the same docker-compose file, you can use the service name as the host:
@@ -89,7 +96,7 @@ environment:
   ASPNETCORE_ENVIRONMENT: Production
   ASPNETCORE_URLS: 'http://+:8000'
   # Connection string for the ProxySQL server
-  PAI_ConnectionStrings__ProxySqlContext: 'Server=proxysql;Port=6033;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;'
+  PAI_ConnectionStrings__ProxySqlContext: 'Server=proxysql;Port=6032;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;'
 ```
 
 ## Random notes
