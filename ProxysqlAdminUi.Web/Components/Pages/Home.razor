@@ -1,5 +1,6 @@
 ﻿@page "/"
 
+@using System.Globalization
 @using ProxysqlAdminUi.Web.Extensions
 @using ProxysqlAdminUi.Web.Repositories
 @using ProxysqlAdminUi.Web.ViewModel
@@ -9,6 +10,19 @@
 @inject ProxySqlRepository ProxySqlRepository
 
 <AuthorizeView>
+    @if (_loadError is not null)
+    {
+        <RadzenStack Gap="1rem">
+            <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter"
+                         AllowClose="false" Title="Dashboard unavailable">
+                @($"Cannot reach ProxySQL: {_loadError}")
+            </RadzenAlert>
+            <RadzenButton Text="Retry" Icon="refresh" ButtonStyle="ButtonStyle.Primary"
+                          Disabled="@_loading" Click="@LoadDashboard" Style="align-self:flex-start" />
+        </RadzenStack>
+    }
+    else
+    {
     <RadzenStack Gap="1rem">
         <RadzenRow>
             <!-- Left Column-->
@@ -16,12 +30,13 @@
                 <!-- Query Cache Card -->
                 <RadzenCard>
                     <RadzenText TextStyle="TextStyle.H5">Query Cache Efficiency</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Caption">All-time average since ProxySQL started - the counters are cumulative, not a current rate.</RadzenText>
                     <RadzenRow>
                         <RadzenColumn Size="12" SizeMD="6">
                             <RadzenArcGauge class="rz-w-100" Style="height:contain">
                                 <RadzenArcGaugeScale TickPosition="GaugeTickPosition.Outside" MinorStep="1" Step="10" Min="0" Max="100" Margin="10">
-                                    <RadzenArcGaugeScaleValue Value="@_cacheHitRatio" ShowValue="true">
-                                        <Template Context="arc_context">@($"{_cacheHitRatio:N1}% Cache hit rate")</Template>
+                                    <RadzenArcGaugeScaleValue Value="@(_cacheHitRate ?? 0)" ShowValue="true">
+                                        <Template Context="arc_context">@(_cacheHitRate is null ? "No cache activity yet" : $"{_cacheHitRate:N1}% cache hit rate")</Template>
                                     </RadzenArcGaugeScaleValue>
                                 </RadzenArcGaugeScale>
                             </RadzenArcGauge>
@@ -30,23 +45,37 @@
                             <RadzenRow>
                                 <RadzenColumn Size="12">
                                     <RadzenCard>
-                                        <RadzenText TextStyle="TextStyle.Subtitle2">Total Queries</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.H6">@_totalQueries.ToString("###,###,###,###,###")</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Subtitle2">Cache Lookups</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.H6">@_cacheLookups.ToString("N0")</RadzenText>
                                     </RadzenCard>
                                 </RadzenColumn>
                                 <RadzenColumn Size="6">
                                     <RadzenCard>
-                                        <RadzenText TextStyle="TextStyle.Subtitle2">Cached</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.H6">@_cachedQueries.ToString("###,###,###,###,###")</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Subtitle2">Hits</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.H6">@_cacheHits.ToString("N0")</RadzenText>
                                     </RadzenCard>
                                 </RadzenColumn>
                                 <RadzenColumn Size="6">
                                     <RadzenCard>
-                                        <RadzenText TextStyle="TextStyle.Subtitle2">Uncached</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.H6">@_uncachedQueries.ToString("###,###,###,###,###")</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Subtitle2">Misses</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.H6">@_cacheMisses.ToString("N0")</RadzenText>
                                     </RadzenCard>
                                 </RadzenColumn>
                             </RadzenRow>
+                            <RadzenStack Gap="0.25rem" class="rz-mt-2">
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Caption">Results stored (SET):</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption">@_cacheSets.ToString("N0")</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Caption">Entries currently cached:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption">@_cacheEntries.ToString("N0")</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenText TextStyle="TextStyle.Caption">Entries purged:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption">@_cachePurged.ToString("N0")</RadzenText>
+                                </RadzenStack>
+                            </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
                 </RadzenCard>
@@ -58,11 +87,11 @@
                             <RadzenStack Gap="1rem">
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
                                     <RadzenText TextStyle="TextStyle.Subtitle2">Query Cache:</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Query_Cache_Memory_bytes", "0")))</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(Stat("Query_Cache_Memory_bytes"))</RadzenText>
                                 </RadzenStack>
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
                                     <RadzenText TextStyle="TextStyle.Subtitle2">Connection Pool:</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("ConnPool_memory_bytes", "0")))</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(Stat("ConnPool_memory_bytes"))</RadzenText>
                                 </RadzenStack>
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
                                     <RadzenText TextStyle="TextStyle.Subtitle2">Total Allocated:</RadzenText>
@@ -115,7 +144,7 @@
                     <RadzenColumn Size="12" SizeMD="6">
                         <RadzenCard>
                             <RadzenText TextStyle="TextStyle.H5">Uptime</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatUptime(long.Parse(_globalStats.GetValueOrDefault("ProxySQL_Uptime", "0")))</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatUptime(Stat("ProxySQL_Uptime"))</RadzenText>
                         </RadzenCard>
                         <!-- Server Status Card -->
                         <RadzenCard class="rz-mt-4">
@@ -165,15 +194,15 @@
                             <RadzenStack Gap="1rem">
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
                                     <RadzenText TextStyle="TextStyle.Subtitle2">Total Queries:</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(long.Parse(_globalStats.GetValueOrDefault("Questions", "0")))</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(Stat("Questions"))</RadzenText>
                                 </RadzenStack>
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
                                     <RadzenText TextStyle="TextStyle.Subtitle2">Slow Queries:</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(long.Parse(_globalStats.GetValueOrDefault("Slow_queries", "0")))</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(Stat("Slow_queries"))</RadzenText>
                                 </RadzenStack>
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
                                     <RadzenText TextStyle="TextStyle.Subtitle2">Cache Hits:</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(long.Parse(_globalStats.GetValueOrDefault("Query_Cache_count_GET_OK", "0")))</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatLargeNumber(Stat("Query_Cache_count_GET_OK"))</RadzenText>
                                 </RadzenStack>
                             </RadzenStack>
                         </RadzenCard>
@@ -184,20 +213,20 @@
                             <RadzenStack Gap="1rem">
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
                                     <RadzenText TextStyle="TextStyle.Body2">Received:</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_frontends_bytes_recv", "0")))</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(Stat("Queries_frontends_bytes_recv"))</RadzenText>
                                 </RadzenStack>
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
                                     <RadzenText TextStyle="TextStyle.Body2">Sent:</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_frontends_bytes_sent", "0")))</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(Stat("Queries_frontends_bytes_sent"))</RadzenText>
                                 </RadzenStack>
                                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mt-2 rz-mb-2">Backend</RadzenText>
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
                                     <RadzenText TextStyle="TextStyle.Body2">Received:</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_backends_bytes_recv", "0")))</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(Stat("Queries_backends_bytes_recv"))</RadzenText>
                                 </RadzenStack>
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
                                     <RadzenText TextStyle="TextStyle.Body2">Sent:</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(long.Parse(_globalStats.GetValueOrDefault("Queries_backends_bytes_sent", "0")))</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1">@FormatHelper.FormatBytes(Stat("Queries_backends_bytes_sent"))</RadzenText>
                                 </RadzenStack>
                             </RadzenStack>
                         </RadzenCard>
@@ -206,47 +235,92 @@
             </RadzenColumn>
         </RadzenRow>
     </RadzenStack>
+    }
 </AuthorizeView>
 
 @code {
-    private double _cacheHitRatio;
-    private long _totalQueries;
-    private long _cachedQueries;
-    private long _uncachedQueries;
+    /// <summary>Query cache hit rate in percent, or null when the cache has never been consulted.</summary>
+    private double? _cacheHitRate;
+
+    private long _cacheLookups;
+    private long _cacheHits;
+    private long _cacheMisses;
+    private long _cacheSets;
+    private long _cacheEntries;
+    private long _cachePurged;
     private ServerStatusSummaryViewModel _serverStatus = new();
     private Dictionary<string, string> _globalStats = new();
     private Dictionary<string, long> _memoryMetrics = new();
 
+    /// <summary>Message of the failure that prevented the dashboard from loading, if any.</summary>
+    private string? _loadError;
+
+    private bool _loading;
+
     protected override async Task OnInitializedAsync()
     {
-        var rules = await ProxySqlRepository.GetQueryRulesWithStats();
-
-        _cachedQueries = rules.Sum(r => r.Hits);
-        _uncachedQueries = rules.Sum(r => r.CountStar);
-        _totalQueries = _cachedQueries + _uncachedQueries;
-
-        _cacheHitRatio = _totalQueries > 0
-            ? Math.Round((double)_cachedQueries / _totalQueries * 100, 1)
-            : 0;
-
-        _serverStatus = await ProxySqlRepository.GetServerStatusSummary();
-        _globalStats = await ProxySqlRepository.GetMySqlGlobalStats();
-        _memoryMetrics = await ProxySqlRepository.GetMemoryMetrics();
+        await LoadDashboard();
     }
+
+    /// <summary>
+    /// Loads every dashboard figure. A failure here usually means ProxySQL is unreachable, so it
+    /// is rendered as an alert with a retry instead of escaping into the Blazor error bar.
+    /// </summary>
+    private async Task LoadDashboard()
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _loading = true;
+        _loadError = null;
+
+        try
+        {
+            _globalStats = await ProxySqlRepository.GetMySqlGlobalStats();
+            _serverStatus = await ProxySqlRepository.GetServerStatusSummary();
+            _memoryMetrics = await ProxySqlRepository.GetMemoryMetrics();
+
+            _cacheLookups = Stat("Query_Cache_count_GET");
+            _cacheHits = Stat("Query_Cache_count_GET_OK");
+            _cacheMisses = CacheStatsHelper.Misses(_cacheLookups, _cacheHits);
+            _cacheSets = Stat("Query_Cache_count_SET");
+            _cacheEntries = Stat("Query_Cache_Entries");
+            _cachePurged = Stat("Query_Cache_Purged");
+            _cacheHitRate = CacheStatsHelper.HitRate(_cacheLookups, _cacheHits);
+        }
+        catch (Exception ex)
+        {
+            _loadError = ex.Message;
+            _globalStats = new Dictionary<string, string>();
+            _memoryMetrics = new Dictionary<string, long>();
+            _serverStatus = new ServerStatusSummaryViewModel();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    /// <summary>
+    /// A counter from <c>stats_mysql_global</c>. ProxySQL returns every value as text and may
+    /// report a non-numeric placeholder, so an unparsable value counts as zero.
+    /// </summary>
+    private long Stat(string key) =>
+        long.TryParse(_globalStats.GetValueOrDefault(key, "0"), NumberStyles.Integer,
+            CultureInfo.InvariantCulture, out var value)
+            ? value
+            : 0;
 
     private double GetSuccessRate(string okKey, string totalKey)
     {
-        if (!long.TryParse(_globalStats.GetValueOrDefault(okKey, "0"), out var ok) ||
-            !long.TryParse(_globalStats.GetValueOrDefault(totalKey, "0"), out var total))
-            return 0;
+        var ok = Stat(okKey);
+        var total = Stat(totalKey);
 
         return total == 0 ? 100 : (ok * 100.0) / total;
     }
 
-    private string GetSuccessString(string okKey, string errKey)
-    {
-        var ok = long.Parse(_globalStats.GetValueOrDefault(okKey, "0"));
-        var err = long.Parse(_globalStats.GetValueOrDefault(errKey, "0"));
-        return $"{FormatHelper.FormatLargeNumber(ok)} OK / {FormatHelper.FormatLargeNumber(err)} ERR";
-    }
+    private string GetSuccessString(string okKey, string errKey) =>
+        $"{FormatHelper.FormatLargeNumber(Stat(okKey))} OK / {FormatHelper.FormatLargeNumber(Stat(errKey))} ERR";
 }

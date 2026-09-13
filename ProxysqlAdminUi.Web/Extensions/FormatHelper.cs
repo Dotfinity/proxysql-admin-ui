@@ -47,6 +47,25 @@ public static class FormatHelper
     }
 
 
+    /// <summary>
+    /// Shortens a query digest for display in a grid cell. ProxySQL reports a NULL digest text
+    /// for some internal statements, so a missing text yields an empty string rather than throwing.
+    /// </summary>
+    /// <param name="text">The digest text as returned by ProxySQL, possibly null.</param>
+    /// <param name="maxLength">Characters to keep before the ellipsis.</param>
+    public static string TruncateDigestText(string? text, int maxLength = 30)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(maxLength);
+
+        if (string.IsNullOrEmpty(text))
+        {
+            return string.Empty;
+        }
+
+        return text.Length > maxLength ? string.Concat(text.AsSpan(0, maxLength), "...") : text;
+    }
+
+
     public static string FormatMicroseconds(long microseconds)
     {
         var ts = TimeSpan.FromMicroseconds(microseconds);

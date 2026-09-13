@@ -16,6 +16,7 @@
 
 <RadzenCard>
     <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">MySQL Query Digest Statistics</RadzenText>
+    <RadzenText TextStyle="TextStyle.Caption">One row per digest and hostgroup - filter or sort by Hostgroup to narrow it down.</RadzenText>
 
     <RadzenDataGrid @ref="_grid"
                     Visible="@_gridVisible"
@@ -73,7 +74,7 @@
                                   Visible="@IsColumnVisible(nameof(QueryDigestViewModel.DigestText))"
                                   Title="Query" Sortable="false" Width="250px" MinWidth="300px">
                 <Template Context="digest">
-                    <RadzenButton Size="ButtonSize.Small" Text="@ExtractDigestText(digest)"
+                    <RadzenButton Size="ButtonSize.Small" Text="@FormatHelper.TruncateDigestText(digest.DigestText)"
                                   Click="async ()=> await ClikShowQueryDialog(digest.DigestText)" />
                 </Template>
             </RadzenDataGridColumn>
@@ -85,7 +86,7 @@
             
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.CacheHits)"
                                   Visible="@IsColumnVisible(nameof(QueryDigestViewModel.CacheHits))"
-                                  HeaderTooltip="Total number of times this query pattern was executed" Title="Cache Hits" FormatString="{0:### ### ### ### ##0}"  Filterable="true"
+                                  HeaderTooltip="Number of times this query pattern was served from the query cache" Title="Cache Hits" FormatString="{0:### ### ### ### ##0}"  Filterable="true"
                                   Sortable="true" />
             
             <RadzenDataGridColumn TItem="QueryDigestViewModel" Property="@nameof(QueryDigestViewModel.FirstSeen)"
@@ -235,11 +236,6 @@
 
         // Refresh data after creation
         await RefreshData();
-    }
-
-    private static string ExtractDigestText(QueryDigestViewModel digest)
-    {
-        return digest.DigestText.Length > 30 ? digest.DigestText.Substring(0, 30) + "..." : digest.DigestText;
     }
 
     private async Task ClikShowQueryDialog(string digestText)

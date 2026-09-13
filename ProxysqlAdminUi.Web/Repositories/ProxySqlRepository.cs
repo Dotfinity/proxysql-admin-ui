@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProxysqlAdminUi.Web.Contexts;
+using ProxysqlAdminUi.Web.Extensions;
 using ProxysqlAdminUi.Web.Models;
 using ProxysqlAdminUi.Web.ViewModel;
 
@@ -7,6 +8,13 @@ namespace ProxysqlAdminUi.Web.Repositories;
 
 public class ProxySqlRepository(ProxySqlContext dbContext)
 {
+    // ProxySQL configuration families, as spelled in "LOAD {family} TO RUNTIME" /
+    // "SAVE {family} TO DISK". Every write path has to apply its own family; applying
+    // the wrong one leaves the change in the admin tables only.
+    private const string ServersFamily = "MYSQL SERVERS";
+    private const string UsersFamily = "MYSQL USERS";
+    private const string RulesFamily = "MYSQL QUERY RULES";
+
     // MySQL Servers
     public async Task<IEnumerable<MysqlServerModel>> GetMySqlServers()
     {
@@ -15,7 +23,7 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
             .ToListAsync();
     }
 
-    public async Task<MysqlServerModel> GetMySqlServer(string hostname)
+    public async Task<MysqlServerModel?> GetMySqlServer(string hostname)
     {
         return await dbContext.MySqlServers
             .FromSqlRaw("SELECT * FROM mysql_servers WHERE hostname = {0}", hostname)
@@ -35,29 +43,48 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
              server.Status, server.Weight, server.Compression, server.MaxConnections,
              server.MaxReplicationLag, server.UseSsl, server.MaxLatencyMs, server.Comment);
 
+        await ApplyAsync(ServersFamily);
         return result;
     }
 
+    /// <summary>
+    /// Updates one backend server. The primary key of <c>mysql_servers</c> is
+    /// (hostgroup_id, hostname, port), so the port is part of the match: the same host can be
+    /// listed on several ports and only the addressed row may change.
+    /// </summary>
     public async Task<int> UpdateMySqlServer(MysqlServerModel server)
     {
-        var sql = @"UPDATE mysql_servers 
-            SET status = {2}, weight = {3}, compression = {4},
-                max_connections = {5}, max_replication_lag = {6},
-                use_ssl = {7}, max_latency_ms = {8}, comment = {9}
-            WHERE hostgroup_id = {0} AND hostname = {1}";
+        var sql = @"UPDATE mysql_servers
+            SET status = {3}, weight = {4}, compression = {5},
+                max_connections = {6}, max_replication_lag = {7},
+                use_ssl = {8}, max_latency_ms = {9}, comment = {10}
+            WHERE hostgroup_id = {0} AND hostname = {1} AND port = {2}";
 
-        return await dbContext.Database.ExecuteSqlRawAsync(sql,
-            server.HostgroupId, server.Hostname, server.Status, server.Weight,
+        var result = await dbContext.Database.ExecuteSqlRawAsync(sql,
+            server.HostgroupId, server.Hostname, server.Port, server.Status, server.Weight,
             server.Compression, server.MaxConnections, server.MaxReplicationLag,
             server.UseSsl, server.MaxLatencyMs, server.Comment);
+
+        await ApplyAsync(ServersFamily);
+        return result;
     }
 
-    public async Task<int> DeleteMySqlServer(int hostgroupId, string hostname)
+    /// <summary>Deletes one backend server by its full composite key (hostgroup, hostname, port).</summary>
+    public async Task<int> DeleteMySqlServer(int hostgroupId, string hostname, int port)
     {
-        return await dbContext.Database.ExecuteSqlRawAsync(
-            "DELETE FROM mysql_servers WHERE hostgroup_id = {0} AND hostname = {1}",
-            hostgroupId, hostname);
+        var result = await dbContext.Database.ExecuteSqlRawAsync(
+            "DELETE FROM mysql_servers WHERE hostgroup_id = {0} AND hostname = {1} AND port = {2}",
+            hostgroupId, hostname, port);
+
+        await ApplyAsync(ServersFamily);
+        return result;
     }
+
+    /// <summary>Applies the staged <c>mysql_servers</c> rows to the running configuration.</summary>
+    public Task LoadServersToRuntime() => LoadToRuntimeAsync(ServersFamily);
+
+    /// <summary>Persists the staged <c>mysql_servers</c> rows so they survive a restart.</summary>
+    public Task SaveServersToDisk() => SaveToDiskAsync(ServersFamily);
 
     // MySQL Users
     public async Task<IEnumerable<MysqlUserModel>> GetMySqlUsers()
@@ -67,10 +94,15 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
             .ToListAsync();
     }
 
-    public async Task<MysqlUserModel> GetMySqlUser(string username)
+    /// <summary>
+    /// Loads a single user by its composite primary key. <c>mysql_users</c> can hold the same
+    /// username twice - once as a backend row and once as a frontend row - so the username alone
+    /// does not identify a row.
+    /// </summary>
+    public async Task<MysqlUserModel?> GetMySqlUser(string username, int backend)
     {
         return await dbContext.MySqlUsers
-            .FromSqlRaw("SELECT * FROM mysql_users WHERE username = {0}", username)
+            .FromSqlRaw("SELECT * FROM mysql_users WHERE username = {0} AND backend = {1}", username, backend)
             .FirstOrDefaultAsync();
     }
 
@@ -89,8 +121,7 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
             user.TransactionPersistent, user.FastForward, user.Backend,
             user.Frontend, user.MaxConnections, user.Attributes, user.Comment);
 
-        await LoadUsersToRuntime();
-        await SaveUsersToDisk();
+        await ApplyAsync(UsersFamily);
         return user;
     }
 
@@ -110,8 +141,7 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
             user.TransactionPersistent, user.FastForward, user.Frontend,
             user.MaxConnections, user.Attributes, user.Comment, user.Backend);
 
-        await LoadUsersToRuntime();
-        await SaveUsersToDisk();
+        await ApplyAsync(UsersFamily);
         return result;
     }
 
@@ -120,20 +150,15 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
         var result = await dbContext.Database.ExecuteSqlRawAsync(
             "DELETE FROM mysql_users WHERE username = {0}", username);
 
-        await LoadUsersToRuntime();
-        await SaveUsersToDisk();
+        await ApplyAsync(UsersFamily);
         return result;
     }
 
-    public async Task LoadUsersToRuntime()
-    {
-        await dbContext.Database.ExecuteSqlRawAsync("LOAD MYSQL USERS TO RUNTIME;");
-    }
+    /// <summary>Applies the staged <c>mysql_users</c> rows to the running configuration.</summary>
+    public Task LoadUsersToRuntime() => LoadToRuntimeAsync(UsersFamily);
 
-    public async Task SaveUsersToDisk()
-    {
-        await dbContext.Database.ExecuteSqlRawAsync("SAVE MYSQL USERS TO DISK;");
-    }
+    /// <summary>Persists the staged <c>mysql_users</c> rows so they survive a restart.</summary>
+    public Task SaveUsersToDisk() => SaveToDiskAsync(UsersFamily);
 
     // MySQL Query Rules
     public async Task<IEnumerable<MysqlQueryRuleModel>> GetMySqlQueryRules()
@@ -143,7 +168,12 @@ public class ProxySqlRepository(ProxySqlContext dbContext)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<QueryRuleViewModel>> GetQueryRulesWithStats()
+    /// <summary>
+    /// Every query rule joined with its hit counters and matching digest. The result is
+    /// materialised, so callers may enumerate it repeatedly without re-querying ProxySQL;
+    /// an empty rule set yields an empty list, never null.
+    /// </summary>
+    public async Task<List<QueryRuleViewModel>> GetQueryRulesWithStats()
     {
         const string sql = @"
 SELECT r.*, 
@@ -162,10 +192,11 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
          r.multiplex, r.gtid_from_hostgroup, r.log, r.apply, r.attributes, r.comment,
          s.hits";
 
-        return dbContext.Database.SqlQueryRaw<QueryRuleViewModel>(sql);
+        return await dbContext.Database.SqlQueryRaw<QueryRuleViewModel>(sql)
+            .ToListAsync();
     }
 
-    public async Task<MysqlQueryRuleModel> GetMySqlQueryRule(int ruleId)
+    public async Task<MysqlQueryRuleModel?> GetMySqlQueryRule(int ruleId)
     {
         return await dbContext.MySqlQueryRules
             .FromSqlRaw("SELECT * FROM mysql_query_rules WHERE rule_id = {0}", ruleId)
@@ -200,8 +231,7 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
             rule.Multiplex, rule.GtidFromHostgroup, rule.Log, rule.Apply,
             rule.Attributes, rule.Comment);
 
-        await LoadRulesToRuntime();
-        await SaveRulesToDisk();
+        await ApplyAsync(RulesFamily);
         return result;
     }
 
@@ -235,8 +265,7 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
             rule.GtidFromHostgroup, rule.Log, rule.Apply,
             rule.Attributes, rule.Comment);
 
-        await LoadRulesToRuntime();
-        await SaveRulesToDisk();
+        await ApplyAsync(RulesFamily);
         return result;
     }
 
@@ -244,8 +273,7 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
     {
         var result = await dbContext.Database.ExecuteSqlRawAsync(
             "DELETE FROM mysql_query_rules WHERE rule_id = {0}", ruleId);
-        await LoadRulesToRuntime();
-        await SaveRulesToDisk();
+        await ApplyAsync(RulesFamily);
         return result;
     }
 
@@ -265,7 +293,7 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
                                                   and rd.hostgroup = -1
                                     left join mysql_query_rules r
                                               on r.digest = d.digest
-                           where d.hostgroup = 0
+                           where d.hostgroup <> -1
                            order by d.count_star desc
                            """;
 
@@ -280,15 +308,11 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
             .ToListAsync();
     }
 
-    public async Task LoadRulesToRuntime()
-    {
-        await dbContext.Database.ExecuteSqlRawAsync("LOAD MYSQL QUERY RULES TO RUNTIME;");
-    }
+    /// <summary>Applies the staged <c>mysql_query_rules</c> rows to the running configuration.</summary>
+    public Task LoadRulesToRuntime() => LoadToRuntimeAsync(RulesFamily);
 
-    public async Task SaveRulesToDisk()
-    {
-        await dbContext.Database.ExecuteSqlRawAsync("SAVE MYSQL QUERY RULES TO DISK;");
-    }
+    /// <summary>Persists the staged <c>mysql_query_rules</c> rows so they survive a restart.</summary>
+    public Task SaveRulesToDisk() => SaveToDiskAsync(RulesFamily);
 
 
     public async Task<IEnumerable<GlobalVariableModel>> GetGlobalVariables()
@@ -296,14 +320,27 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
         return await dbContext.GlobalVariables.ToListAsync();
     }
 
+    /// <summary>
+    /// Writes a global variable and applies it through the LOAD/SAVE pair of its own family,
+    /// so the new value takes effect immediately and survives a restart.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// The variable belongs to a family this UI cannot apply; nothing is written, because an
+    /// update that cannot be loaded to runtime would look applied while having no effect.
+    /// </exception>
     public async Task<int> UpdateGlobalVariable(GlobalVariableModel variable)
     {
+        ArgumentNullException.ThrowIfNull(variable);
+
+        var family = GlobalVariableFamily.Resolve(variable.VariableName)
+                     ?? throw new InvalidOperationException(
+                         GlobalVariableFamily.NotEditableMessage(variable.VariableName));
+
         var result = await dbContext.Database.ExecuteSqlRawAsync(
             "UPDATE global_variables SET variable_value = {0} WHERE variable_name = {1}",
             variable.VariableValue, variable.VariableName);
 
-        await dbContext.Database.ExecuteSqlRawAsync(
-            "LOAD ADMIN VARIABLES TO RUNTIME");
+        await ApplyAsync(family);
 
         return result;
     }
@@ -334,6 +371,30 @@ GROUP BY r.rule_id, r.active, r.username, r.schemaname, r.flagIN, r.client_addr,
     public async Task FlushQueryCache()
     {
         await dbContext.Database.ExecuteSqlRawAsync("PROXYSQL FLUSH QUERY CACHE;");
+    }
+
+    /// <summary>
+    /// Applies a family of staged changes: first to the running configuration, then to disk.
+    /// If the LOAD fails the SAVE is skipped - persisting a configuration ProxySQL rejected
+    /// would make the failure survive a restart - and the exception reaches the caller.
+    /// </summary>
+    private async Task ApplyAsync(string family)
+    {
+        await LoadToRuntimeAsync(family);
+        await SaveToDiskAsync(family);
+    }
+
+    private async Task LoadToRuntimeAsync(string family)
+    {
+        // Built from the private family constants only, never from user input.
+        var sql = "LOAD " + family + " TO RUNTIME;";
+        await dbContext.Database.ExecuteSqlRawAsync(sql);
+    }
+
+    private async Task SaveToDiskAsync(string family)
+    {
+        var sql = "SAVE " + family + " TO DISK;";
+        await dbContext.Database.ExecuteSqlRawAsync(sql);
     }
 
     public async Task<ServerStatusSummaryViewModel> GetServerStatusSummary()

@@ -1,4 +1,4 @@
-@using ProxysqlAdminUi.Web.Models
+﻿@using ProxysqlAdminUi.Web.Models
 @using ProxysqlAdminUi.Web.Repositories
 
 @attribute [Authorize]
@@ -146,12 +146,12 @@
 
 @code {
     [Parameter]
-    public string Username { get; set; }
+    public string Username { get; set; } = string.Empty;
 
     [Parameter]
     public int Backend { get; set; }
 
-    private MysqlUserModel _mysqlUser;
+    private MysqlUserModel? _mysqlUser;
 
     // Checkbox bindings for boolean-like integer fields
     private bool _activeChecked
@@ -194,8 +194,7 @@
     {
         try
         {
-            var users = await ProxySqlRepository.GetMySqlUsers();
-            _mysqlUser = users.FirstOrDefault(u => u.Username == Username && u.Backend == Backend);
+            _mysqlUser = await ProxySqlRepository.GetMySqlUser(Username, Backend);
 
             if (_mysqlUser == null)
             {
@@ -212,6 +211,11 @@
 
     private async Task OnSubmit()
     {
+        if (_mysqlUser is null)
+        {
+            return;
+        }
+
         try
         {
             await ProxySqlRepository.UpdateMySqlUser(_mysqlUser);

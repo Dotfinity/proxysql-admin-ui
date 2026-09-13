@@ -1,5 +1,6 @@
-@page "/proxysql/global-variables"
+﻿@page "/proxysql/global-variables"
 
+@using ProxysqlAdminUi.Web.Extensions
 @using ProxysqlAdminUi.Web.Models
 @using ProxysqlAdminUi.Web.Repositories
 
@@ -11,7 +12,11 @@
 <RadzenStack Gap="1rem">
     <RadzenText TextStyle="TextStyle.H3">Global Variables</RadzenText>
 
-    <RadzenDataGrid @ref="variablesGrid" Data="@_variables" TItem="GlobalVariableModel"
+    <RadzenText TextStyle="TextStyle.Caption">
+        Only @("mysql-") and @("admin-") variables can be applied from here; every other family is read-only.
+    </RadzenText>
+
+    <RadzenDataGrid @ref="_variablesGrid" Data="@_variables" TItem="GlobalVariableModel"
                     AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="20"
                     EditMode="DataGridEditMode.Single" RowUpdate="@OnUpdateRow">
         <Columns>
@@ -34,14 +39,17 @@
                                   Width="70px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
                 <Template Context="variable">
                     <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
-                                  Size="ButtonSize.Medium" Click="@(args => EditRow(variable))" />
+                                  Size="ButtonSize.Medium"
+                                  Disabled="@(_saving || !GlobalVariableFamily.IsEditable(variable.VariableName))"
+                                  title="@ReadOnlyReason(variable)"
+                                  Click="@(args => EditRow(variable))" />
                 </Template>
                 <EditTemplate Context="variable">
                     <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat"
-                                  Size="ButtonSize.Medium" Click="@((args) => SaveRow(variable))">
+                                  Size="ButtonSize.Medium" Disabled="@_saving" Click="@((args) => SaveRow(variable))">
                     </RadzenButton>
                     <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
-                                  Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@((args) => CancelEdit(variable))">
+                                  Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Disabled="@_saving" Click="@((args) => CancelEdit(variable))">
                     </RadzenButton>
                 </EditTemplate>
             </RadzenDataGridColumn>
@@ -50,9 +58,15 @@
 </RadzenStack>
 
 @code {
-    private IEnumerable<GlobalVariableModel> _variables;
-    private RadzenDataGrid<GlobalVariableModel> variablesGrid;
-    private Dictionary<string, string> _originalValues = new();
+    private IEnumerable<GlobalVariableModel> _variables = [];
+    private RadzenDataGrid<GlobalVariableModel>? _variablesGrid;
+    private readonly Dictionary<string, string> _originalValues = new();
+
+    /// <summary>
+    /// Set while an update is in flight so the save tick cannot be submitted twice against the
+    /// same scoped DbContext.
+    /// </summary>
+    private bool _saving;
 
     protected override async Task OnInitializedAsync()
     {
@@ -64,43 +78,83 @@
         _variables = await ProxySqlRepository.GetGlobalVariables();
     }
 
-    async Task EditRow(GlobalVariableModel variable)
+    private string ReadOnlyReason(GlobalVariableModel variable) =>
+        GlobalVariableFamily.IsEditable(variable.VariableName)
+            ? "Edit"
+            : GlobalVariableFamily.NotEditableMessage(variable.VariableName);
+
+    private async Task EditRow(GlobalVariableModel variable)
     {
+        if (_variablesGrid is null || !GlobalVariableFamily.IsEditable(variable.VariableName))
+        {
+            return;
+        }
+
         _originalValues[variable.VariableName] = variable.VariableValue;
-        await variablesGrid.EditRow(variable);
+        await _variablesGrid.EditRow(variable);
     }
 
-    void OnUpdateRow(GlobalVariableModel variable)
+    /// <summary>
+    /// Runs inside the grid's RowUpdate, so the awaited repository call completes before the
+    /// component moves on: no fire-and-forget task can touch the scoped DbContext after disposal.
+    /// </summary>
+    private async Task OnUpdateRow(GlobalVariableModel variable)
     {
         try
         {
-            ProxySqlRepository.UpdateGlobalVariable(variable);
+            await ProxySqlRepository.UpdateGlobalVariable(variable);
             NotificationService.Notify(NotificationSeverity.Success, "Success", "Variable updated");
             _originalValues.Remove(variable.VariableName);
         }
         catch (Exception ex)
         {
             NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
-            if (_originalValues.ContainsKey(variable.VariableName))
-            {
-                variable.VariableValue = _originalValues[variable.VariableName];
-                _originalValues.Remove(variable.VariableName);
-            }
+            RevertRow(variable);
         }
     }
 
-    async Task SaveRow(GlobalVariableModel variable)
+    private async Task SaveRow(GlobalVariableModel variable)
     {
-        await variablesGrid.UpdateRow(variable);
-    }
-
-    void CancelEdit(GlobalVariableModel variable)
-    {
-        if (_originalValues.ContainsKey(variable.VariableName))
+        if (_saving || _variablesGrid is null)
         {
-            variable.VariableValue = _originalValues[variable.VariableName];
-            _originalValues.Remove(variable.VariableName);
+            return;
         }
-        variablesGrid.CancelEditRow(variable);
+
+        if (!GlobalVariableFamily.IsEditable(variable.VariableName))
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Read-only variable",
+                GlobalVariableFamily.NotEditableMessage(variable.VariableName));
+            RevertRow(variable);
+            _variablesGrid.CancelEditRow(variable);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            await _variablesGrid.UpdateRow(variable);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private void CancelEdit(GlobalVariableModel variable)
+    {
+        RevertRow(variable);
+        _variablesGrid?.CancelEditRow(variable);
+    }
+
+    /// <summary>
+    /// Puts the last known good value back on the model. Safe to call when the row has already
+    /// left edit mode, which is what happens after a failed update.
+    /// </summary>
+    private void RevertRow(GlobalVariableModel variable)
+    {
+        if (_originalValues.Remove(variable.VariableName, out var original))
+        {
+            variable.VariableValue = original;
+        }
     }
 }

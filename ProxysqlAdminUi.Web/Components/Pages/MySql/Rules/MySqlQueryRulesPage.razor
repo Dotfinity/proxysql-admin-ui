@@ -25,7 +25,7 @@
 
     @foreach (var rule in MysqlQueryRulesList)
     {
-        <RadzenCard class="rz-w-100">
+        <RadzenCard @key="rule.RuleId" class="rz-w-100">
             <RadzenCardGroup Responsive="true">
                 <RadzenCard Variant="Variant.Text">
                     <RadzenRow>
@@ -137,7 +137,7 @@
                 <RadzenCard Variant="Variant.Text">
                     <RadzenStack>
                         <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Primary" Text="Edit" Click="async () => await ShowEditModal(rule.RuleId)"></RadzenButton>
-                        <RadzenButton Icon="Report" ButtonStyle="ButtonStyle.Danger" Text="Delete" Click="async () => await ShowDeleteModal(rule.RuleId)"></RadzenButton>
+                        <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Text="Delete" Click="async () => await ShowDeleteModal(rule.RuleId)"></RadzenButton>
                     </RadzenStack>
                 </RadzenCard>
             </RadzenCardGroup>
