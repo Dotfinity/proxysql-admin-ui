@@ -1,5 +1,5 @@
 # This stage is used to build the service project
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 ARG BUILD_CONFIGURATION=Release
 ARG TARGETARCH=amd64
 ARG RUNTIME=linux-musl-x64
@@ -24,7 +24,7 @@ RUN dotnet publish "./ProxysqlAdminUi.Web.csproj" --runtime $RUNTIME --no-restor
 # Enable globalization and time zones:
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
 # final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine
 EXPOSE 8000
 
 ENV \

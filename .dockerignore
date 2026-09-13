@@ -1,0 +1,13 @@
+# Keep local-only and build artefacts out of the Docker build context
+**/bin/
+**/obj/
+**/db/
+**/appsettings.Development.json
+**/.claude/
+.git/
+.github/
+Casestudy/
+Docs/
+ProxysqlAdminUi.Tests/
+ProxysqlAdminUi.WebTester/
+*.md
