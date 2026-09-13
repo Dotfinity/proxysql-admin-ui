@@ -7,6 +7,12 @@ services:
         ASPNETCORE_ENVIRONMENT: Development
         ASPNETCORE_URLS: 'http://+:8000'
         PAI_ConnectionStrings__ProxySqlContext: 'Server=proxysql;Port=6033;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;'
+        # The initial admin account, seeded into the SQLite identity database on first start.
+        # Keep the real password out of this file - supply it from an .env file or a secret store.
+        # The app forces a password change on the first request while this password is still in use,
+        # and there is no self-registration or password-reset e-mail, so this is the only way in.
+        PAI_DefaultUsers__0__Username: 'admin'
+        PAI_DefaultUsers__0__Password: '${PAI_ADMIN_PASSWORD:-CHANGE-ME-AdminAdmin1}'
       logging:
         driver: "json-file"
         options:

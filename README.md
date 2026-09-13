@@ -65,6 +65,11 @@ A modern web interface for managing ProxySQL, built with Blazor and .NET Core.
   ]
 ```
 
+The `DefaultUsers` entry seeds the first account. This checked-in password is a placeholder: the app
+forces a password change on the first request while it is still in use. For anything but a local
+sandbox, set it through `PAI_DefaultUsers__0__Password` instead of editing this file - see
+[Docker Configuration](#docker-configuration).
+
 2. Start the application:
 
 ```bash
@@ -98,6 +103,36 @@ environment:
   # Connection string for the ProxySQL server
   PAI_ConnectionStrings__ProxySqlContext: 'Server=proxysql;Port=6032;Uid=radmin;Pwd=radmin;ConnectionReset=False;Pooling=True;ConnectionLifeTime=3000000;'
 ```
+
+#### The initial administrator account
+
+Supply the seeded account as environment variables rather than editing `appsettings.json`, so a real
+password never ends up in the image or in the compose file:
+
+```yml
+environment:
+  PAI_DefaultUsers__0__Username: 'admin'
+  PAI_DefaultUsers__0__Password: '${PAI_ADMIN_PASSWORD}'   # from an .env file or a secret store
+```
+
+The account is created on first start, when the identity database is empty. As long as it still
+authenticates with the configured password, the app redirects every request to
+**Account → Change password** and refuses to go anywhere else — a published default credential is
+never left standing. Once the password is changed, normal navigation resumes.
+
+There is no self-registration and no password-reset e-mail: accounts are created only from
+`DefaultUsers`.
+
+#### Recovering a lost admin password
+
+Because there is no password-reset flow, recovery happens at container level. Stop the app, delete
+the identity database - `db/app.db` locally, or the file inside the volume mounted at `APP_DB_PATH`
+(`/app/db/` by default) - and start it again. The seed service recreates the schema and the
+`DefaultUsers` account, and the forced password change applies to it as before.
+
+Note that this also discards any other accounts and their two-factor registrations. If the account is
+merely locked out after five failed sign-ins, nothing needs deleting: the lock expires after five
+minutes on its own.
 
 ## Random notes
 

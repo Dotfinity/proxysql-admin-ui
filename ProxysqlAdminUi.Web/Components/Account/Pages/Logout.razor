@@ -1,0 +1,48 @@
+﻿@page "/Account/Logout"
+
+@using Microsoft.AspNetCore.Identity
+@using ProxysqlAdminUi.Web.Data
+
+@inject SignInManager<ProxysqlAdminUiWebUser> SignInManager
+@inject IdentityRedirectManager RedirectManager
+
+@* Sign-out lives on a statically rendered page rather than in MainLayout: the app renders
+   interactively without prerendering, so an <AntiforgeryToken /> in the layout would have no token
+   and the POST would be rejected. Everything under /Account is server-rendered (see App.razor), so
+   this Blazor SSR form gets its antiforgery token automatically. *@
+
+<PageTitle>Log out</PageTitle>
+
+<div class="row" style="margin-top:10vh">
+    <div class="col-8 col-md-4 offset-md-4">
+        <section>
+            <h2>Log out</h2>
+            <hr />
+            <p>Are you sure you want to end your session?</p>
+            <EditForm Model="Input" method="post" FormName="logout" OnValidSubmit="LogoutUser">
+                <button type="submit" class="w-100 btn btn-lg btn-primary">Log out</button>
+            </EditForm>
+            <p class="mt-3">
+                <a href="/">Back to the dashboard</a>
+            </p>
+        </section>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = default!;
+
+    protected override void OnInitialized() => Input ??= new();
+
+    private async Task LogoutUser()
+    {
+        await SignInManager.SignOutAsync();
+        RedirectManager.RedirectTo("Account/Login");
+    }
+
+    /// <summary>
+    /// <see cref="EditForm"/> requires a model even when the form carries no fields.
+    /// </summary>
+    private sealed class InputModel;
+}

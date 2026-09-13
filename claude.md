@@ -38,8 +38,10 @@
 
 ### Supporting Libraries
 - **Newtonsoft.Json 13.0.x** - JSON serialization
-- **Swashbuckle.AspNetCore 10.x** - OpenAPI/Swagger documentation
 - **ASP.NET Core Identity** - Cookie-based authentication
+
+> Swagger/OpenAPI (`Swashbuckle.AspNetCore`) was removed: there are no API controllers to document.
+> Do not re-add it unless a real API surface lands.
 
 ### Testing
 - **xunit.v3 4.x** on **Microsoft.Testing.Platform** (runner selected by the root `global.json`)
@@ -95,7 +97,7 @@
 ```
 ProxysqlAdminUi.Web/
 ├── Components/
-│   ├── Account/              # Authentication UI (Login, Register, etc.)
+│   ├── Account/              # Authentication UI (Login, Logout, Lockout, Manage/*) - no registration
 │   ├── Pages/                # Main application pages
 │   │   ├── Home.razor        # Dashboard with metrics
 │   │   ├── MySql/            # MySQL management pages
@@ -113,6 +115,9 @@ ProxysqlAdminUi.Web/
 ├── Models/                   # Entity models (mapped to database tables)
 ├── Repositories/
 │   └── ProxySqlRepository.cs # Data access layer
+├── Security/
+│   ├── PaiClaims.cs                    # Custom Identity claim types
+│   └── MustChangePasswordMiddleware.cs # Forces the seeded admin off the default password
 ├── Services/
 │   └── DefaultUserSeedService.cs # User initialization
 ├── Extensions/
@@ -135,7 +140,8 @@ ProxysqlAdminUi.Web/
   - Registers services (Blazor, Radzen, Identity, DbContexts, Repository)
   - Configures authentication (cookie-based)
   - Runs `DefaultUserSeedService` at startup (SQLite schema + default admin)
-  - Swagger/OpenAPI setup (served only when `ASPNETCORE_ENVIRONMENT=Development`; there are no API controllers)
+  - Calls `UseAuthentication()` / `UseAuthorization()` explicitly, then `UseMustChangePassword()` (see below), then `UseAntiforgery()`
+  - No Swagger/OpenAPI and no output caching - both were removed as unused (there are no API controllers)
   - Ends with `public partial class Program;` so tests can boot the app via `WebApplicationFactory<Program>`
 
 - **`appsettings.json`** - Configuration:
@@ -272,8 +278,33 @@ docker-compose up -d
 ### Modifying Authentication
 - **User Model:** `Data/ProxysqlAdminUiWebUser.cs`
 - **DbContext:** `Contexts/ProxysqlAdminUiWebAuthContext.cs`
-- **Account Pages:** `Components/Account/` (Login, Register, etc.)
+- **Account Pages:** `Components/Account/` (Login, Lockout, Logout, AccessDenied, InvalidUser, 2FA, `Manage/*`)
 - **Configuration:** `Program.cs` - Identity services registration
+
+**Self-registration is closed.** `Register`, `ResendEmailConfirmation`, `ConfirmEmail*`, the whole
+forgot/reset-password flow, `ExternalLogin*` and `Manage/Email` are deleted, along with
+`IdentityNoOpEmailSender` - there is no e-mail sender and no external provider. Accounts come from
+`DefaultUsers` only. `/Account/Register` is a 404. A lost admin password is recovered by deleting the
+identity database (see README, "Recovering a lost admin password").
+
+**Signing out** is a statically rendered page, `Components/Account/Pages/Logout.razor`. It cannot live
+in `MainLayout`: `App.razor` renders the app with `new InteractiveServerRenderMode(false)` (no
+prerendering), so an `<AntiforgeryToken />` in the layout has no token and the POST is rejected.
+Everything under `/Account` is SSR, so the Blazor SSR form there gets its token automatically. The old
+minimal-API `MapPost("/Logout")` was removed to avoid an ambiguous route.
+
+**Forced password change.** While the seeded account still authenticates with its configured password,
+`DefaultUserSeedService` adds the user claim `PaiClaims.MustChangePassword` (`"pai:must_change_password"`,
+value `"true"`, see `Security/PaiClaims.cs`), and `Security/MustChangePasswordMiddleware` redirects every
+request to `/Account/Manage/ChangePassword`. This is a **claim, not a column** - deliberately, so it needs
+no Identity schema change (the schema comes from `EnsureCreatedAsync` and the migrations are empty).
+The default `UserClaimsPrincipalFactory` carries the claim in the auth cookie, so the check costs no
+database round-trip. `ChangePassword.razor` removes the claim and calls `RefreshSignInAsync` (in that
+order - refreshing first would rebuild the cookie with the claim still attached). The check re-runs on
+every startup, so a deployment already live on the documented default password is caught too.
+
+**Lockout** is on: 5 failed attempts, 5 minutes (`Program.cs`), with `lockoutOnFailure: true` in
+`Login.razor`. With no password-reset flow, a locked-out sole admin simply waits out the window.
 
 ## Build & Deployment
 
@@ -309,6 +340,7 @@ docker build -f docker/Dockerfile \
 - `ASPNETCORE_ENVIRONMENT` - Development/Staging/Production
 - `ASPNETCORE_URLS` - Server binding (default: http://+:8000)
 - `PAI_ConnectionStrings__ProxySqlContext` - ProxySQL connection string
+- `PAI_DefaultUsers__0__Username` / `PAI_DefaultUsers__0__Password` - the seeded admin account; prefer these over putting a password in `appsettings.json`
 - `APP_DB_PATH` - SQLite database location (default: /app/db/)
 - `BUILD_VERSION` - Version number (YYYY.MM.DD format)
 - `BUILD_SUFFIX` - Build identifier (GitHub run ID)
@@ -495,7 +527,7 @@ dotnet ef migrations add MigrationName --context ProxysqlAdminUiWebAuthContext -
 - ProxySQL Web UI: http://localhost:6080
 - ProxySQL MySQL: localhost:6033
 - MariaDB: localhost:3306
-- Swagger: http://localhost:5203/swagger (Development environment only)
+- Swagger: removed (no API controllers) - `/swagger` is a 404 in every environment
 
 ---
 

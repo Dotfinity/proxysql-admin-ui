@@ -3,7 +3,12 @@
 @code {
     protected override void OnInitialized()
     {
-        if (!NavigationManager.Uri.StartsWith("Account/Login"))
+        // NavigationManager.Uri is absolute, so it has to be reduced to a base-relative path before it
+        // can be compared with the login route - otherwise the guard never matches and this component
+        // redirects to the login page from the login page itself.
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+
+        if (!relativePath.StartsWith("Account/Login", StringComparison.OrdinalIgnoreCase))
         {
             NavigationManager.NavigateTo($"Account/Login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}", forceLoad: true);
         }

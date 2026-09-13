@@ -1,29 +1,62 @@
 ﻿@inherits LayoutComponentBase
 @inject AppVersion AppVersion
+@inject NavigationManager Navigation
 
 <RadzenComponents @rendermode="InteractiveServer" />
 
 <RadzenLayout>
     <RadzenHeader>
-        <RadzenMenu>
-            <RadzenMenuItem Text="Home" Icon="home" Path="/" />
-            <RadzenMenuItem Text="Mysql Users" Icon="account_box" Path="/mysql/users" />
-            <RadzenMenuItem Text="Mysql Servers" Icon="dns" Path="/mysql/servers" />
-            <RadzenMenuItem Text="Rules" Icon="quiz" Path="/mysql/rules" />
-            <RadzenMenuItem Text="Query Digest" Icon="query_stats" Path="/mysql/queries/digest" />
-            <RadzenMenuItem Text="Global Variables" Icon="settings" Path="/proxysql/global-variables" />
-            <RadzenMenuItem Text="Actions" Icon="build" Path="/proxysql/actions" />
-        </RadzenMenu>
-       
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Style="width:100%">
+            <RadzenMenu>
+                <RadzenMenuItem Text="Home" Icon="home" Path="/" />
+                <RadzenMenuItem Text="Mysql Users" Icon="account_box" Path="/mysql/users" />
+                <RadzenMenuItem Text="Mysql Servers" Icon="dns" Path="/mysql/servers" />
+                <RadzenMenuItem Text="Rules" Icon="quiz" Path="/mysql/rules" />
+                <RadzenMenuItem Text="Query Digest" Icon="query_stats" Path="/mysql/queries/digest" />
+                <RadzenMenuItem Text="Global Variables" Icon="settings" Path="/proxysql/global-variables" />
+                <RadzenMenuItem Text="Actions" Icon="build" Path="/proxysql/actions" />
+            </RadzenMenu>
+            <AuthorizeView Context="authenticationState">
+                @* Anonymous visitors get no profile menu at all - the <Authorized> fragment is the whole content. *@
+                <Authorized>
+                    <RadzenProfileMenu Style="margin-right:1rem;">
+                        <Template>
+                            <RadzenIcon Icon="account_circle" />
+                            <span style="margin-left:0.25rem;">@authenticationState.User.Identity?.Name</span>
+                        </Template>
+                        <ChildContent>
+                            @* The /Account pages are statically rendered. A plain Path would first
+                               resolve them inside the interactive router and then force-reload,
+                               which flashes; navigating with forceLoad skips that round trip. *@
+                            <RadzenProfileMenuItem Text="Change password" Icon="password" Click="GoToChangePassword" />
+                            <RadzenProfileMenuItem Text="Log out" Icon="logout" Click="GoToLogout" />
+                        </ChildContent>
+                    </RadzenProfileMenu>
+                </Authorized>
+            </AuthorizeView>
+        </RadzenStack>
     </RadzenHeader>
     <RadzenBody>
         @Body
     </RadzenBody>
     <RadzenFooter Style="height:30px;padding-top:2px;">
-        <RadzenBadge BadgeStyle="BadgeStyle.Info"><RadzenLink Style="color:white;" Path="@("https://github.com/Dotfinity/proxysql-admin-ui/releases/"+AppVersion.Version)" Text="@AppVersion.Version" /></RadzenBadge>
+        @if (AppVersion.IsRelease)
+        {
+            <RadzenBadge BadgeStyle="BadgeStyle.Info"><RadzenLink Style="color:white;" Path="@("https://github.com/Dotfinity/proxysql-admin-ui/releases/tag/" + AppVersion.Version)" Text="@AppVersion.Version" /></RadzenBadge>
+        }
+        else
+        {
+            <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="@AppVersion.Version" title="Local build - no matching GitHub release" />
+        }
     </RadzenFooter>
 </RadzenLayout>
 
 @code {
-    bool sidebar1Expanded = true; 
+    // The /Account pages are statically rendered; a full load avoids resolving them inside the
+    // interactive router first and then force-reloading, which flashes.
+    private void GoToChangePassword(RadzenProfileMenuItem _) =>
+        Navigation.NavigateTo("/Account/Manage/ChangePassword", forceLoad: true);
+
+    private void GoToLogout(RadzenProfileMenuItem _) =>
+        Navigation.NavigateTo("/Account/Logout", forceLoad: true);
 }

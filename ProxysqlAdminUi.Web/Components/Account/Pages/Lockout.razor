@@ -2,7 +2,24 @@
 
 <PageTitle>Locked out</PageTitle>
 
-<header>
-    <h1 class="text-danger">Locked out</h1>
-    <p class="text-danger">This account has been locked out, please try again later.</p>
-</header>
+<div class="row" style="margin-top:10vh">
+    <div class="col-8 col-md-4 offset-md-4">
+        <header>
+            <h1 class="text-danger">Locked out</h1>
+        </header>
+        <p class="text-danger">
+            Too many failed sign-in attempts, so this account is temporarily locked.
+        </p>
+        <p>
+            The lock clears itself after <strong>5 minutes</strong> - wait, then
+            <a href="Account/Login">try again</a>. There is no password-reset e-mail in this
+            application, so nothing else is needed.
+        </p>
+        <p>
+            If the password is genuinely lost, an administrator with access to the host can delete the
+            identity database (<code>db/app.db</code>, or the <code>APP_DB_PATH</code> volume) and
+            restart the container: the default account is then re-created from the
+            <code>DefaultUsers</code> configuration.
+        </p>
+    </div>
+</div>

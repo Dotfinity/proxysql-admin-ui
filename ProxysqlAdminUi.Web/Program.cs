@@ -8,6 +8,7 @@ using ProxysqlAdminUi.Web.Data;
 using ProxysqlAdminUi.Web.Components.Account;
 using ProxysqlAdminUi.Web.Contexts;
 using ProxysqlAdminUi.Web.Repositories;
+using ProxysqlAdminUi.Web.Security;
 using ProxysqlAdminUi.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,9 +25,6 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddRadzenComponents();
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 
 builder.Services.AddCascadingAuthenticationState();
@@ -49,6 +47,14 @@ builder.Services.AddIdentityCore<ProxysqlAdminUiWebUser>(options =>
       options.Password.RequiredLength = 12;
       options.Password.RequireNonAlphanumeric = false;
       options.Password.RequiredUniqueChars = 4;
+
+      // The login form is often reachable from the network, so failed attempts must not be free.
+      // There is no password-reset flow (self-registration and e-mail are deliberately absent), so a
+      // locked-out sole administrator has no way to unlock the account other than waiting: keep the
+      // window short enough to be survivable and long enough to make guessing pointless.
+      options.Lockout.AllowedForNewUsers = true;
+      options.Lockout.MaxFailedAccessAttempts = 5;
+      options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
     })
     .AddEntityFrameworkStores<ProxysqlAdminUiWebAuthContext>()
     .AddSignInManager()
@@ -64,10 +70,6 @@ builder.Services.AddDbContext<ProxySqlContext>(options =>
 builder.Services.AddScoped<ProxySqlRepository>();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-builder.Services.AddSingleton<IEmailSender<ProxysqlAdminUiWebUser>, IdentityNoOpEmailSender>();
-
-builder.Services.AddOutputCache();
 
 builder.Services.AddScoped<DefaultUserSeedService>();
 
@@ -93,16 +95,14 @@ if (!app.Environment.IsDevelopment())
 
 
 app.UseStaticFiles();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Reads the claim off the authenticated principal, so it has to come after the two calls above.
+app.UseMustChangePassword();
+
 app.UseAntiforgery();
-
-app.UseOutputCache();
-
-if (app.Environment.IsDevelopment())
-{
-  // Only the Identity endpoints exist; don't expose their documentation publicly in Production.
-  app.UseSwagger();
-  app.UseSwaggerUI();
-}
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
