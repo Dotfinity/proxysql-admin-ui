@@ -1,6 +1,4 @@
-﻿@page "/mysql/rules/edit/{RuleId:int}"
-
-@using ProxysqlAdminUi.Web.Models
+﻿@using ProxysqlAdminUi.Web.Models
 @using ProxysqlAdminUi.Web.Repositories
 @using ProxysqlAdminUi.Web.Components.CustomComponents
 
@@ -293,13 +291,19 @@
     [Parameter]
     public int RuleId { get; set; }
 
-    private MysqlQueryRuleModel _queryRule;
+    private MysqlQueryRuleModel? _queryRule;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             _queryRule = await ProxySqlRepository.GetMySqlQueryRule(RuleId);
+
+            if (_queryRule is null)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error", $"Query rule #{RuleId} was not found");
+                DialogService.Close();
+            }
         }
         catch (Exception ex)
         {
@@ -310,6 +314,11 @@
 
     private async Task OnSubmit()
     {
+        if (_queryRule is null)
+        {
+            return;
+        }
+
         try
         {
             await ProxySqlRepository.UpdateMySqlQueryRule(_queryRule);

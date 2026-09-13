@@ -1,20 +1,32 @@
-﻿@page "/mysql/queries/digest/text"
-
 @attribute [Authorize]
- 
 
-<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
-  <code>
-      @DigestText
-  </code>
+@inject DialogService DialogService
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <pre style="margin: 0; white-space: pre-wrap; overflow-wrap: anywhere;"><code>@DigestText</code></pre>
+
+    @if (ShowClose)
+    {
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+            <RadzenButton ButtonType="ButtonType.Button"
+                          Icon="close"
+                          Text="Close"
+                          ButtonStyle="ButtonStyle.Light"
+                          Click="@OnClose" />
+        </RadzenStack>
+    }
 </RadzenStack>
 
 @code {
-    [Parameter] public string DigestText { get; set; }
-    [Parameter] public bool ShowClose { get; set; } = true;
-     
-    protected override async Task OnParametersSetAsync()
+    /// <summary>The normalized query text of a digest row. Supplied by <see cref="DialogService" />.</summary>
+    [Parameter]
+    public string? DigestText { get; set; }
+
+    [Parameter]
+    public bool ShowClose { get; set; } = true;
+
+    private void OnClose()
     {
-        await base.OnParametersSetAsync();
+        DialogService.Close();
     }
 }

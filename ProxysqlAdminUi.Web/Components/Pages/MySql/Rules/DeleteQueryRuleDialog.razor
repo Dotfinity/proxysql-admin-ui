@@ -1,5 +1,3 @@
-@page "/mysql/rules/delete/{RuleId:int}"
-
 @using ProxysqlAdminUi.Web.Models
 @using ProxysqlAdminUi.Web.Repositories
 
@@ -9,77 +7,77 @@
 @inject DialogService DialogService
 @inject NotificationService NotificationService
 
-<RadzenContent Container="main">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <RadzenTemplateForm TItem="MysqlQueryRuleModel" Data=@queryRule Submit=@OnConfirmDelete>
-                <RadzenCard>
-                    <div class="row">
-                        <div class="col">
-                            <h3 class="h5">Confirm Delete</h3>
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <p>Are you sure you want to delete Query Rule #@RuleId?</p>
-                                    @if (queryRule != null)
-                                    {
-                                        <div class="alert alert-info">
-                                            <strong>Rule Details:</strong><br />
-                                            Rule ID: @queryRule.RuleId<br />
-                                            Active: @queryRule.Active<br />
-                                            Username: @queryRule.Username<br />
-                                            Schema Name: @queryRule.Schemaname<br />
-                                            Client Addr: @queryRule.ClientAddr<br />
-                                            Proxy Addr: @queryRule.ProxyAddr<br />
-                                            Match Digest: @queryRule.MatchDigest<br />
-                                            Match Pattern: @queryRule.MatchPattern
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col d-flex justify-content-end gap-2">
-                                    <RadzenButton ButtonType="ButtonType.Submit" 
-                                                Icon="delete" 
-                                                Text="Delete"
-                                                ButtonStyle="ButtonStyle.Danger" />
-                                    <RadzenButton ButtonType="ButtonType.Button"
-                                                Icon="cancel" 
-                                                Text="Cancel"
-                                                ButtonStyle="ButtonStyle.Light"
-                                                Click=@OnCancel />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </RadzenCard>
-            </RadzenTemplateForm>
-        </div>
-    </div>
-</RadzenContent>
+<RadzenTemplateForm TItem="MysqlQueryRuleModel" Data="@_queryRule" Submit="@OnConfirmDelete">
+    <RadzenStack Gap="1rem">
+        <RadzenText TextStyle="TextStyle.Subtitle1">
+            Are you sure you want to delete Query Rule <b>#@RuleId</b>?
+        </RadzenText>
+
+        @if (_isLoading)
+        {
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" ShowValue="false" />
+                <RadzenText TextStyle="TextStyle.Body2">Loading rule details...</RadzenText>
+            </RadzenStack>
+        }
+        else if (_queryRule is not null)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" Title="Rule Details">
+                <RadzenRow>
+                    <RadzenColumn Size="6">
+                        <RadzenText TextStyle="TextStyle.Body2">Rule ID: @_queryRule.RuleId</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">Active: @_queryRule.Active</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">Username: @_queryRule.Username</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">Schema Name: @_queryRule.Schemaname</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn Size="6">
+                        <RadzenText TextStyle="TextStyle.Body2">Client Addr: @_queryRule.ClientAddr</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">Proxy Addr: @_queryRule.ProxyAddr</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">Match Digest: @_queryRule.MatchDigest</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">Match Pattern: @_queryRule.MatchPattern</RadzenText>
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenAlert>
+        }
+
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            <RadzenButton ButtonType="ButtonType.Submit"
+                          Icon="delete"
+                          Text="Delete"
+                          ButtonStyle="ButtonStyle.Danger"
+                          Disabled="@_isLoading" />
+            <RadzenButton ButtonType="ButtonType.Button"
+                          Icon="cancel"
+                          Text="Cancel"
+                          ButtonStyle="ButtonStyle.Light"
+                          Click="@OnCancel" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
 
 @code {
-
+    /// <summary>The rule to delete. Supplied by <see cref="DialogService" />; this component is not routable.</summary>
     [Parameter]
     public int RuleId { get; set; }
 
-    private MysqlQueryRuleModel queryRule;
-    private bool isLoading = true;
+    private MysqlQueryRuleModel? _queryRule;
+    private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            queryRule = await ProxySqlRepository.GetMySqlQueryRule(RuleId);
+            _queryRule = await ProxySqlRepository.GetMySqlQueryRule(RuleId);
         }
         catch (Exception ex)
-        { 
-            NotificationService.Notify(NotificationSeverity.Error, "Error","Failed to load query rule details.\r\n" + ex.Message);
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Failed to load query rule details.\r\n" + ex.Message);
 
             DialogService.Close();
         }
         finally
         {
-            isLoading = false;
+            _isLoading = false;
         }
     }
 
@@ -89,14 +87,14 @@
         {
             await ProxySqlRepository.DeleteMySqlQueryRule(RuleId);
 
-            NotificationService.Notify(NotificationSeverity.Success, "Success", 
+            NotificationService.Notify(NotificationSeverity.Success, "Success",
                 $"Query Rule #{RuleId} has been deleted.");
             DialogService.Close();
         }
         catch (Exception ex)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", 
-                "Failed to delete query rule.\r\n"+ex.Message);
+            NotificationService.Notify(NotificationSeverity.Error, "Error",
+                "Failed to delete query rule.\r\n" + ex.Message);
         }
     }
 

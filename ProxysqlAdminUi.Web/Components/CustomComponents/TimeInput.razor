@@ -1,25 +1,40 @@
-﻿@namespace ProxysqlAdminUi.Web.Components.CustomComponents
+@namespace ProxysqlAdminUi.Web.Components.CustomComponents
 
-<RadzenRow>
-    <RadzenColumn Size="3">
-        <RadzenLabel Text="Hours" />
-        <RadzenNumeric Min="0" @bind-Value="Hours" />
-    </RadzenColumn>
-    <RadzenColumn Size="3">
-        <RadzenLabel Text="Minutes" />
-        <RadzenNumeric Min="0" Max="59" @bind-Value="Minutes" />
-    </RadzenColumn>
-    <RadzenColumn Size="3">
-        <RadzenLabel Text="Seconds" />
-        <RadzenNumeric Min="0" Max="59" @bind-Value="Seconds" />
-    </RadzenColumn>
-    <RadzenColumn Size="3">
-        <RadzenLabel Text="Milliseconds" />
-        <RadzenNumeric Min="0" Max="999" @bind-Value="Milliseconds" />
-    </RadzenColumn>
-</RadzenRow>
+<RadzenStack Gap="0.5rem">
+    <RadzenRow>
+        <RadzenColumn Size="3">
+            <RadzenLabel Text="Hours" />
+            <RadzenNumeric Min="0" @bind-Value="Hours" />
+        </RadzenColumn>
+        <RadzenColumn Size="3">
+            <RadzenLabel Text="Minutes" />
+            <RadzenNumeric Min="0" Max="59" @bind-Value="Minutes" />
+        </RadzenColumn>
+        <RadzenColumn Size="3">
+            <RadzenLabel Text="Seconds" />
+            <RadzenNumeric Min="0" Max="59" @bind-Value="Seconds" />
+        </RadzenColumn>
+        <RadzenColumn Size="3">
+            <RadzenLabel Text="Milliseconds" />
+            <RadzenNumeric Min="0" Max="999" @bind-Value="Milliseconds" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+        <RadzenButton ButtonType="ButtonType.Button"
+                      ButtonStyle="ButtonStyle.Light"
+                      Size="ButtonSize.Small"
+                      Icon="backspace"
+                      Text="Clear"
+                      Disabled="@(Value is null)"
+                      Click="@ClearAsync" />
+    </RadzenStack>
+</RadzenStack>
 
 @code {
+    /// <summary>
+    /// The duration in milliseconds, or <c>null</c> when no duration is set. All four boxes at
+    /// zero means "not set" and emits <c>null</c>, never <c>0</c>.
+    /// </summary>
     [Parameter]
     public int? Value { get; set; }
 
@@ -28,31 +43,39 @@
 
     private int Hours
     {
-        get => Value.GetValueOrDefault() / 3600000;
+        get => TimeInputConverter.Decompose(Value).Hours;
         set => UpdateValue(value, Minutes, Seconds, Milliseconds);
     }
 
     private int Minutes
     {
-        get => (Value.GetValueOrDefault() % 3600000) / 60000;
+        get => TimeInputConverter.Decompose(Value).Minutes;
         set => UpdateValue(Hours, value, Seconds, Milliseconds);
     }
 
     private int Seconds
     {
-        get => (Value.GetValueOrDefault() % 60000) / 1000;
+        get => TimeInputConverter.Decompose(Value).Seconds;
         set => UpdateValue(Hours, Minutes, value, Milliseconds);
     }
 
     private int Milliseconds
     {
-        get => Value.GetValueOrDefault() % 1000;
+        get => TimeInputConverter.Decompose(Value).Milliseconds;
         set => UpdateValue(Hours, Minutes, Seconds, value);
     }
 
-    private Task UpdateValue(int h, int m, int s, int ms)
+    private async Task ClearAsync()
     {
-        var total = (h * 3600000) + (m * 60000) + (s * 1000) + ms;
-        return ValueChanged.InvokeAsync(total);
+        Value = null;
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    // Property setters cannot await; EventCallback.InvokeAsync completes synchronously for the
+    // common (non-async handler) case and the renderer surfaces any failure of the returned task.
+    private void UpdateValue(int hours, int minutes, int seconds, int milliseconds)
+    {
+        Value = TimeInputConverter.ToMilliseconds(hours, minutes, seconds, milliseconds);
+        _ = ValueChanged.InvokeAsync(Value);
     }
 }
